@@ -1,0 +1,10 @@
+localizacao: objetos/monitores
+
+f1 = animacao de estática   = fica alternando visual entre f1 + monitor_desejado para efeito de estática temporária no monitor desejado
+f2 = monitor_anel           = dá 10 aneis
+f3 = monitor_sapato_rapido  = aumenta velocidade temporariamente
+f4 = monitor_vida           = aumenta +1 numero de vidas
+f5 = monitor_escudo         = garante protecao contra 1 hit de inimigo ou espinho
+f6 = monitor_invenc         = garante tempo de invencibilidade
+f7 = monitor_salva          = salva checkpoint
+f8 = monitor_cont           = aumenta +1 numero de continuacoes (caso perca todas as vidas, mas tiver 1 continuacao, recebe + 3 vidas e retorna a stage que estava)

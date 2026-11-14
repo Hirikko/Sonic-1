@@ -1,3 +1,4 @@
-name: Meu jogo
+name: Sonic1
 public: true
-version: 1.2
+version: 3.3
+minify: false
