@@ -1,4 +1,4 @@
 name: Sonic-1
-public: false
+public: true
 version: 3.3
 minify: true
