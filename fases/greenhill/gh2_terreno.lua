@@ -1,7 +1,7 @@
 local Terreno = {
     spawn_x = 74.0, spawn_y = 119.5,
     parallax = {
-        x = 0.8,
+        x = 0.7,
         y = 0.8,
         offset_x = -120,
         offset_y = -10,
@@ -87,8 +87,8 @@ local Terreno = {
         { pontos = { 1055.8, 143.07, 1056, 144 } },
         { pontos = { 1056, 144, 1152, 144 } },
         { pontos = { 320, 592, 448, 592 } },
-        { pontos = { 800, 336, 864, 336 } },
-        { pontos = { 864, 368, 896, 368 } },
+        { pontos = { 800, 336, 848, 336 } },
+        { pontos = { 848, 368, 896, 368 } },
         { pontos = { 896, 336, 896, 336 } },
         { pontos = { 896, 336, 960, 336 } },
         { pontos = { 992, 368, 1088, 368 } },
@@ -178,7 +178,7 @@ local Terreno = {
         { x = 320, y1 = 592, y2 = 656 },
         { x = 448, y1 = 592, y2 = 656 },
         { x = 800, y1 = 336, y2 = 464 },
-        { x = 864, y1 = 336, y2 = 368 },
+        { x = 848, y1 = 336, y2 = 368 },
         { x = 896, y1 = 336, y2 = 368 },
         { x = 960, y1 = 336, y2 = 464 },
         { x = 992, y1 = 368, y2 = 432 },
@@ -216,11 +216,11 @@ local Terreno = {
     pendulos = {
     },
     molas = {
-        { tipo = 'mola_esq', x = 1174.32, y = 838, largura = 10, altura = 5 },
-        { tipo = 'mola_cima', x = 1275, y = 838, largura = 10, altura = 5 },
-        { tipo = 'mola_cima', x = 1275, y = 550, largura = 10, altura = 5 },
-        { tipo = 'mola_cima', x = 875, y = 357, largura = 10, altura = 5 },
-        { tipo = 'mola_cima', x = 1947.25, y = 613.25, largura = 10, altura = 5 },
+        { tipo = 'mola_esq', classe = 'mola', x = 1174.32, y = 838, largura = 10, altura = 5, forca = 10, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1275, y = 838, largura = 10, altura = 5, forca = 12, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1275, y = 550, largura = 10, altura = 5, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 875, y = 357, largura = 10, altura = 5, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1947.25, y = 613.25, largura = 10, altura = 5, forca = 14, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
     },
     aneis = {
         { x = 104.0, y = 79.5, coletado = false },
@@ -286,20 +286,22 @@ local Terreno = {
         { x = 778.0, y = 684.0, coletado = false },
     },
     areas_agua = {
-        { x = 288, y = 352, w = 800, h = 592 },
+        { x = 288, y = 352, w = 800, h = 592, pontos = { 1088, 352, 1088, 368, 992, 368, 992, 528, 704, 528, 704, 704, 736, 704, 736, 720, 640, 720, 640, 896, 1056, 896, 1056, 912, 992, 912, 992, 944, 800, 944, 800, 912, 608, 912, 608, 944, 384, 944, 384, 912, 288, 912, 288, 896, 608, 896, 608, 704, 672, 704, 672, 512, 768, 512, 768, 368, 704, 368, 704, 352, 800, 352, 800, 512, 960, 512, 960, 352 } },
+    },
+    pontos_ar = {
     },
     sensores_queda = {
         { x = 256, y = 96, w = 0, h = 48 },
     },
     outros = {
-        { tipo = 'monitores', nome = 'monitor_anel', x = 676, y = 126, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_escudo', x = 168, y = 382, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_vida', x = 72, y = 894, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_anel', x = 714, y = 350, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_anel', x = 328, y = 574, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_salva', x = 1319, y = 798, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_anel', x = 2087, y = 605, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'venceu', nome = 'placa_final', x = 2672, y = 481, w = 0, h = 32, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_anel', x = 676, y = 124, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_escudo', x = 168, y = 380, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_vida', x = 72, y = 892, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_anel', x = 714, y = 348, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_anel', x = 328, y = 572, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_salva', x = 1319, y = 796, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_anel', x = 2087, y = 604, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'venceu', nome = 'placa_final', x = 2672, y = 488, w = 0, h = 32, coletado = false, ativo = true },
     },
     inimigos = {
         { tipo = 'crab-ghz', x = 388.75, y = 709.75, w = 19, h = 17, direcao = '' },
@@ -311,6 +313,8 @@ local Terreno = {
     },
     plataformas_flutuantes = {
         { x = 1248, y = 144, largura = 32, altura = 16, x_inicial = 1248, amplitude = 64, velocidade = 1.0, direcao = 1 },
+    },
+    plataformas_chefe = {
     },
 }
 return Terreno

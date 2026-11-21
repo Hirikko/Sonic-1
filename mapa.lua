@@ -34,6 +34,54 @@ local parallax_cfg = {
 
 local chunks = { fundo = {}, chao = {}, objetos = {}, deco = {}, agua = {} }
 local tilesets_por_camada = { fundo = {}, chao = {}, objetos = {}, deco = {}, agua = {} }
+-- ============================================================
+-- TILESETS ANIMADOS (Bridge Zone)
+-- O codec gera _tilesets como nome -> NOME DO ASSET (string),
+-- não como objeto de sprite. A engine resolve o nome no ui.map.
+-- Portanto a animação troca STRING por STRING.
+-- As CHAVES nunca mudam (são o que os dados das camadas usam),
+-- então os GIDs continuam válidos e os chunks já gerados — que
+-- compartilham a mesma tabela _tilesets — desenham o novo frame
+-- sem precisar de reconstrução.
+-- ============================================================
+local ANIM_TILESETS = {
+    bd_tile_f1_1 = { "bd_tile_f1_1", "bd_tile_f2_1", "bd_tile_f3_1" },
+    bd_tile_f1_2 = { "bd_tile_f1_2", "bd_tile_f2_2", "bd_tile_f3_2" },
+}
+local ANIM_CADENCIA = 8      -- 60/8 = 7,5 fps por frame de tile
+local anim_timer  = 0
+local anim_frame  = 1
+local anim_ativos = nil
+
+local function preparar_animacao()
+    anim_timer  = 0
+    anim_frame  = 1
+    anim_ativos = nil
+    local ts = Gh_Atual and Gh_Atual.tilesets
+    if type(ts) ~= "table" then return end
+    local lista = {}
+    for chave, nomes in pairs(ANIM_TILESETS) do
+        if ts[chave] ~= nil then
+            lista[#lista + 1] = { chave = chave, nomes = nomes }
+        end
+    end
+    if #lista > 0 then anim_ativos = lista end
+    if ui and ui.log then ui.log("[ANIM] ativos = " .. tostring(anim_ativos and #anim_ativos or 0)) end
+end
+
+local function atualizar_animacao()
+    if not anim_ativos then return end
+    anim_timer = anim_timer + 1
+    if anim_timer < ANIM_CADENCIA then return end
+    anim_timer = 0
+    anim_frame = anim_frame + 1
+    if anim_frame > #anim_ativos[1].nomes then anim_frame = 1 end
+    local ts = Gh_Atual and Gh_Atual.tilesets
+    if type(ts) ~= "table" then return end
+    for _, a in ipairs(anim_ativos) do
+        ts[a.chave] = a.nomes[anim_frame]
+    end
+end
 
 function Mapa.preparar(caminho_json)
     chunks = { fundo = {}, chao = {}, objetos = {}, deco = {}, agua = {} }
@@ -87,6 +135,7 @@ function Mapa.preparar(caminho_json)
     end
 
     Mapa.carregando = (#Mapa.fila_chunks > 0)
+    preparar_animacao()
 end
 
 local function processar_chunk(tarefa)
@@ -138,6 +187,7 @@ local function processar_chunk(tarefa)
 end
 
 function Mapa.update()
+    atualizar_animacao()
     if not Mapa.carregando then return end
 
     for _ = 1, CHUNKS_POR_FRAME do

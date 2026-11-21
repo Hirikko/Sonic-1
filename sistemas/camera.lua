@@ -3,9 +3,6 @@ local Camera = {
     y = 150,
     largura_tela = 480,
     altura_tela = 270,
-
-    -- NOVO: offset vertical acumulativo para "olhar" cima/baixo.
-    -- É somado ao Camera.y final. 0 = neutro, negativo = olhando pra cima (câmera sobe).
     y_offset = 0,
 }
 
@@ -16,16 +13,13 @@ local LOOK_AHEAD = 32
 local SUAVIZACAO = 0.15
 local LIMIAR_SNAP = 0.01
 
--- === NOVO: Configuração do "olhar pra cima/baixo" ===
--- Distâncias baseadas no Sonic 1 do Mega Drive [citation:3][citation:6]
-local LOOK_UP_DIST = 104       -- quanto a câmera sobe (px)
-local LOOK_DOWN_DIST = 88      -- quanto a câmera desce (px)
-local LOOK_SPEED = 2           -- velocidade de rolagem (px/frame)
+local LOOK_UP_DIST = 104
+local LOOK_DOWN_DIST = 88
+local LOOK_SPEED = 2
 local LOOK_DELAY_FRAMES = 45
 
--- Estado interno (não exposto)
 local look_timer = 0
-local look_direcao = 0  -- 0 = neutro, -1 = cima, +1 = baixo
+local look_direcao = 0
 
 local function limitar_x(x, largura_mapa)
     if not largura_mapa then return x end
@@ -41,23 +35,17 @@ local function lerp(a, b, t)
     return a + (b - a) * t
 end
 
--- NOVO: atualiza o y_offset baseado no input e no estado do player
--- Retorna true se a câmera está "olhando" (para o game.lua saber se precisa forçar redraw, etc.)
 function Camera.update_look(player, input)
-    -- Só permite olhar se player está parado no chão
     local pode_olhar = player and player.no_chao and math.abs(player.velocidade_x) < 0.05
 
-    local cima = input.is_action("up", 0)
+    local cima  = input.is_action("up", 0)
     local baixo = input.is_action("down", 0)
 
-    -- Se não pode olhar ou não está segurando nada, reseta
     if not pode_olhar or (not cima and not baixo) then
         look_timer = 0
         look_direcao = 0
     else
-        -- Está segurando cima ou baixo com player parado: incrementa timer
         look_timer = look_timer + 1
-
         if look_timer > LOOK_DELAY_FRAMES then
             if cima then
                 look_direcao = -1
@@ -67,7 +55,6 @@ function Camera.update_look(player, input)
         end
     end
 
-    -- Move o y_offset em direção ao alvo
     local alvo_offset = 0
     if look_direcao == -1 then
         alvo_offset = -LOOK_UP_DIST
@@ -75,7 +62,6 @@ function Camera.update_look(player, input)
         alvo_offset = LOOK_DOWN_DIST
     end
 
-    -- Converge a 2px por frame (como o original)
     if Camera.y_offset < alvo_offset then
         Camera.y_offset = math.min(Camera.y_offset + LOOK_SPEED, alvo_offset)
     elseif Camera.y_offset > alvo_offset then
@@ -84,11 +70,29 @@ function Camera.update_look(player, input)
 end
 
 function Camera.update(player_x, player_y, player_vx, mapa)
+    local State   = require("state")
+    local Terreno = require("sistemas.terreno")
+    local dados   = Terreno.get_dados()
+
+    -- ============================================================
+    -- CUTSCENE DA CAPSULA: a câmera ABANDONA o Sonic.
+    -- Precisa ser return, não um lerp por cima do follow: o follow
+    -- (0.15) é mais forte que a trava (0.08) e arrastava a câmera
+    -- atrás do Sonic enquanto ele corre para fora da tela.
+    -- ============================================================
+    if State.cela_cutscene and State.cela_foco_x then
+        local foco_y = State.cela_foco_y or (Camera.y + Camera.altura_tela / 2)
+        local alvo_x = limitar_x(State.cela_foco_x - Camera.largura_tela / 2, mapa.largura)
+        local alvo_y = limitar_y(foco_y - Camera.altura_tela / 2, mapa.altura)
+        Camera.x = lerp(Camera.x, alvo_x, 0.08)
+        Camera.y = lerp(Camera.y, alvo_y, 0.08)
+        return
+    end
+
     local centro_x = Camera.x + Camera.largura_tela / 2
     local look = 0
     if player_vx > 2 then look = LOOK_AHEAD
     elseif player_vx < -2 then look = -LOOK_AHEAD end
-
     local alvo_x = player_x + look
 
     local alvo_camera_x = Camera.x
@@ -105,10 +109,7 @@ function Camera.update(player_x, player_y, player_vx, mapa)
         Camera.x = alvo_camera_x
     end
 
-    -- Y: alvo base é player - metade da tela. Depois SOMA o y_offset do "olhar".
-    local alvo_camera_y_base = player_y - Camera.altura_tela / 2
-    local alvo_camera_y = alvo_camera_y_base + Camera.y_offset
-
+    local alvo_camera_y = (player_y - Camera.altura_tela / 2) + Camera.y_offset
     local diff_y = alvo_camera_y - Camera.y
     if diff_y > LIMIAR_SNAP or diff_y < -LIMIAR_SNAP then
         Camera.y = lerp(Camera.y, alvo_camera_y, 0.2)
@@ -118,6 +119,19 @@ function Camera.update(player_x, player_y, player_vx, mapa)
 
     Camera.x = limitar_x(Camera.x, mapa.largura)
     Camera.y = limitar_y(Camera.y, mapa.altura)
+
+    -- Trava da arena do chefe: centraliza (não segue o chefe voador)
+    if State.chefe_ativo and not State.chefe_derrotado
+       and dados and dados.initrava and dados.travafim then
+        local centro_arena = (dados.initrava.x + dados.travafim.x) / 2
+        local alvo_cam_x   = centro_arena - Camera.largura_tela / 2
+        Camera.x = lerp(Camera.x, alvo_cam_x, 0.05)
+        -- min/max estavam invertidos (2016 > 2000) e se anulavam.
+        local a = dados.initrava.x
+        local b = dados.travafim.x - Camera.largura_tela
+        local lim_inf, lim_sup = math.min(a, b), math.max(a, b)
+        Camera.x = math.max(lim_inf, math.min(Camera.x, lim_sup))
+    end
 end
 
 function Camera.apply()
@@ -128,11 +142,10 @@ function Camera.get_xy()
     return Camera.x, Camera.y
 end
 
--- NOVO: reset (chamar quando troca de fase ou player reseta)
 function Camera.reset()
     Camera.y_offset = 0
-    look_timer = 0
-    look_direcao = 0
+    look_timer      = 0
+    look_direcao    = 0
 end
 
 return Camera

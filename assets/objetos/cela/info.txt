@@ -1,0 +1,23 @@
+cela:
+	arquivo: cela-W34xH64
+	4 tiles, cada tile contem 1 frame da cela, cada frame tem 34 de largura e 64 de altura.
+		tile 0 = sprite fixo
+		tile 1 = inicio animação se sonic pisar em cima
+		tile 2 = fim animação se sonic pisar em cima
+		tile 3 = resultado da animação e tile final
+	Animação da cela ocorre assim:
+		Sonic pisa no botão, muda para tile 1 espera um segundo, muda para tile 2 e botão desce, ocorrem efeitos de várias explosoes iguais as de eggman chefe quando derrotado, no fim das explosoes, troca para tile 3 e mantém fixo nesse, após isso começam a sair todos os animais do meio da cela(1 ate 7) e deveria tocar bgm de vitoria, deixe um placeholder no momento pois não temos o arquivo.
+
+animais:
+	arquivo: animais-W18xH16
+	12 tiles, 6 animais, 2 frames para cada, cada frame tem 18 de largura e 16 de altura.
+		tile 0 e 1 = animal1
+		tile 2 e 3 = animal2
+		tile 4 e 5 = animal3
+		tile 6 e 7 = animal4
+		tile 8 e 9 = animal5
+		tile 10 e 11 = animal6
+coelho:
+	arquivo: coelho-W16xH24
+	faz parte do pacote de animais, mas tem tamanho de sprite diferente, são dois frames, cada um tendo 16 de largura e 24 de altura.
+		tile 0 e 1 = animal7

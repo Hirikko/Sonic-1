@@ -8,184 +8,30 @@ local State     = require("state")
 local GRAVIDADE_PROJETIL = 0.10
 
 local CONFIG = {
-    ["motobug"] = {
-        sprite_anda = "motobug_anda",
-        velocidade = 1.0,
-        largura = 15, altura = 15,
-        padrao = "anda_chao",
-        alcance = 48
-                    },
-    ["crab-ghz"] = {
-        sprite_anda = "crabghz_anda",
-        sprite_ataq = "crabghz_ataq",
-        velocidade = 0.6,
-        largura = 15, altura = 15,
-        padrao = "patrulha_atira",
-        alcance = 48,
-        duracao_ataque = 90,
-        cooldown_ataque = 90,
-        velocidade_projetil_x = 2.5, velocidade_projetil_y = -2.5, alcance_arco = 125
-                    },
-    ["crab_jz"] = {
-        sprite_anda = "crabjz_anda",
-        sprite_ataq = "crabjz_ataq",
-        velocidade = 0.6,
-        largura = 21, altura = 21,
-        padrao = "patrulha_atira",
-        alcance = 48,
-        duracao_ataque = 90,
-        cooldown_ataque = 90,
-        velocidade_projetil_x = 2.5, velocidade_projetil_y = -2.5, alcance_arco = 125,
-                    },
-    ["buzz"] = {
-        sprite_anda = "buzz_anda",
-        sprite_ataq = "buzz_ataq",
-        velocidade = 0.8,
-        largura = 15, altura = 15,
-        padrao = "voo_patrulha_atira",
-        alcance = 48,
-        raio_deteccao = 110,
-        duracao_ataque = 60,
-        cooldown_ataque = 100,
-        tolerancia_alinhamento = 20, velocidade_projetil = 2.5
-    },
-    ["burr"] = {
-        sprite_anda = "burr_anda",
-        sprite_ataq = "burr_ataq",
-        velocidade = 1.0,
-        largura = 13, altura = 28,
-        padrao = "burr_esconde",
-        raio_deteccao = 42,
-        forca_pulo = -6.5, gravidade = 0.28,
-        duracao_anda = 180,
-    },
-    ["cater"] = {
-        sprite_anda = "cater_anda",
-        sprite_ataq = "cater_cabeca",
-        velocidade = 0.4,
-        largura = 16, altura = 15,
-        padrao = "cater_segmentos",
-        alcance = 32,
-        raio_deteccao = 52,
-        cooldown_ataque = 180,
-        num_segmentos = 4,
-        forca_pulo_y = -4.0,
-        forca_pulo_x_base = 1.5,
-        gravidade_segmento = 0.35,
-        atrito_horizontal = 1.0,
-        limite_espalhamento = 32,
-    },
-    ["ballhog"] = {
-        sprite_anda = "ballhog_anda",
-        sprite_ataq = "ballhog_ataq",
-        velocidade = 0.5,
-        largura = 9, altura = 22,
-        padrao = "ballhog_anda_atira",
-        alcance = 48,
-        duracao_ataque = 40,
-        raio_deteccao = 60,
-        cooldown_ataque = 120,
-        velocidade_bala = 2.0,
-        gravidade_bala = 0.12,
-        quique_bala = 0.6,
-        tempo_bala = 240,
-    },
-    ["statue"] = {
-        sprite_anda = "statue_anda",
-        sprite_ataq = "statue_ataq",
-        velocidade = 0,
-        largura = 21, altura = 21,
-        padrao = "statue_atira",
-        cooldown_ataque = 180,
-        velocidade_projetil = 2.5,
-        gravidade_projetil = 0.10,
-        tempo_projetil = 240,
-    },
-    ["bomb"] = {
-        sprite_anda = "bomb_anda",
-        sprite_ataq = "bomb_ataq",
-        velocidade = 0.4,
-        largura = 10, altura = 12,
-        padrao = "bomb_explode",
-        alcance = 48,
-        raio_deteccao = 64,
-        duracao_pavio = 90,
-        velocidade_bala = 1.8,
-        gravidade_bala = 0.18,
-    },
-    ["neutron"] = {
-        sprite_anda = "neutron_anda",
-        sprite_ataq = nil,
-        largura = 13, altura = 29,
-        padrao = "neutron_fade",
-        raio_deteccao = 90,
-        velocidade_tiro = 3.0,
-        duracao_fade_in  = 45,
-        duracao_espera   = 90,
-        duracao_pos_tiro = 90,
-        duracao_fade_out = 45,
-    },
-    ["orbo"] = {
-        sprite_anda = "orbo_anda",
-        sprite_ataq = "orbo_orbita",
-        largura = 13, altura = 13,
-        padrao = "orbo_atira",
-        raio_deteccao = 96,
-        raio_orbita = 16,
-        velocidade_orbita = 0.04,
-        velocidade_tiro = 0.6,
-        intervalo_tiro = 40,
-        tempo_queda = 10,
-        movimento_flutuante = 8,
-        velocidade_flutuante = 0.02,
-    },
-    ["jaws"] = {
-        sprite_anda = "jaws_anda",
-        sprite_ataq = "jaws_ataq",
-        largura = 18, altura = 11,
-        padrao = "jaws_persegue",
-        raio_deteccao = 190,
-        raio_saida = 220,
-        velocidade_normal = 0.5,
-        velocidade_boost = 2.0,
-        duracao_perseguicao = 90,
-        duracao_boost = 60,
-        cooldown_boost = 180,
-        flutuacao_amplitude = 4,
-        flutuacao_velocidade = 0.05,
-        },
-    ["chopper"] = {
-        sprite_anda = "chopper_anda",
-        largura = 13, altura = 13,
-        padrao = "chopper_salta",
-        raio_deteccao = 32,
-        forca_pulo = -7.0,
-            gravidade = 0.3,
-    },
-    ["spikes"] = {
-        sprite_anda = "spikes_anda",
-        largura = 21, altura = 29,
-        padrao = "spikes_anda",
-        velocidade = 0.5,
-        alcance = 48,
-    },
-    ["spike-ball"] = {
-        sprite_anda = "spike_ball_anda",
-        largura = 20.67, altura = 18.67,
-        padrao = "spike_ball_move",
-        velocidade = 2.0,
-        alcance = 64,
-        tempo_parado = 120,
-    },
+    ["motobug"] = { sprite_anda = "motobug_anda", velocidade = 1.0, largura = 15, altura = 15, padrao = "anda_chao", alcance = 48 },
+    ["crab-ghz"] = { sprite_anda = "crabghz_anda", sprite_ataq = "crabghz_ataq", velocidade = 0.6, largura = 15, altura = 15, padrao = "patrulha_atira", alcance = 48, duracao_ataque = 90, cooldown_ataque = 90, velocidade_projetil_x = 2.5, velocidade_projetil_y = -2.5, alcance_arco = 125 },
+    ["crab_jz"] = { sprite_anda = "crabjz_anda", sprite_ataq = "crabjz_ataq", velocidade = 0.6, largura = 21, altura = 21, padrao = "patrulha_atira", alcance = 48, duracao_ataque = 90, cooldown_ataque = 90, velocidade_projetil_x = 2.5, velocidade_projetil_y = -2.5, alcance_arco = 125 },
+    ["buzz"] = { sprite_anda = "buzz_anda", sprite_ataq = "buzz_ataq", velocidade = 0.8, largura = 15, altura = 15, padrao = "voo_patrulha_atira", alcance = 48, raio_deteccao = 110, duracao_ataque = 60, cooldown_ataque = 100, tolerancia_alinhamento = 20, velocidade_projetil = 2.5 },
+    ["burr"] = { sprite_anda = "burr_anda", sprite_ataq = "burr_ataq", velocidade = 1.0, largura = 13, altura = 28, padrao = "burr_esconde", raio_deteccao = 42, forca_pulo = -6.5, gravidade = 0.28, duracao_anda = 180 },
+    ["cater"] = { sprite_anda = "cater_anda", sprite_ataq = "cater_cabeca", velocidade = 0.4, largura = 16, altura = 15, padrao = "cater_segmentos", alcance = 32, raio_deteccao = 52, cooldown_ataque = 180, num_segmentos = 4, forca_pulo_y = -4.0, forca_pulo_x_base = 1.5, gravidade_segmento = 0.35, atrito_horizontal = 1.0, limite_espalhamento = 32 },
+    ["ballhog"] = { sprite_anda = "ballhog_anda", sprite_ataq = "ballhog_ataq", velocidade = 0.5, largura = 9, altura = 22, padrao = "ballhog_anda_atira", alcance = 48, duracao_ataque = 40, raio_deteccao = 60, cooldown_ataque = 120, velocidade_bala = 2.0, gravidade_bala = 0.12, quique_bala = 0.6, tempo_bala = 240 },
+    ["statue"] = { sprite_anda = "statue_anda", sprite_ataq = "statue_ataq", velocidade = 0, largura = 21, altura = 21, padrao = "statue_atira", cooldown_ataque = 180, velocidade_projetil = 2.5, gravidade_projetil = 0.10, tempo_projetil = 240 },
+    ["bomb"] = { sprite_anda = "bomb_anda", sprite_ataq = "bomb_ataq", velocidade = 0.4, largura = 10, altura = 12, padrao = "bomb_explode", alcance = 48, raio_deteccao = 64, duracao_pavio = 90, velocidade_bala = 1.8, gravidade_bala = 0.18 },
+    ["neutron"] = { sprite_anda = "neutron_anda", sprite_ataq = nil, largura = 13, altura = 29, padrao = "neutron_fade", raio_deteccao = 90, velocidade_tiro = 3.0, duracao_fade_in = 45, duracao_espera = 90, duracao_pos_tiro = 90, duracao_fade_out = 45 },
+    ["orbo"] = { sprite_anda = "orbo_anda", sprite_ataq = "orbo_orbita", largura = 13, altura = 13, padrao = "orbo_atira", raio_deteccao = 96, raio_orbita = 16, velocidade_orbita = 0.04, velocidade_tiro = 0.6, intervalo_tiro = 40, tempo_queda = 10, movimento_flutuante = 8, velocidade_flutuante = 0.02 },
+    ["jaws"] = { sprite_anda = "jaws_anda", sprite_ataq = "jaws_ataq", largura = 18, altura = 11, padrao = "jaws_persegue", raio_deteccao = 190, raio_saida = 220, velocidade_normal = 0.5, velocidade_boost = 2.0, duracao_perseguicao = 90, duracao_boost = 60, cooldown_boost = 180, flutuacao_amplitude = 4, flutuacao_velocidade = 0.05 },
+    ["chopper"] = { sprite_anda = "chopper_anda", largura = 13, altura = 13, padrao = "chopper_salta", raio_deteccao = 32, forca_pulo = -7.0, gravidade = 0.3 },
+    ["spikes"] = { sprite_anda = "spikes_anda", largura = 21, altura = 29, padrao = "spikes_anda", velocidade = 0.5, alcance = 48 },
+    ["spike-ball"] = { sprite_anda = "spike_ball_anda", largura = 20.67, altura = 18.67, padrao = "spike_ball_move", velocidade = 2.0, alcance = 64, tempo_parado = 120 },
 }
 
-Inimigos.lista = {}
+Inimigos.lista     = {}
 Inimigos.projeteis = {}
 Inimigos.explosoes = {}
 Inimigos.segmentos = {}
 
 function Inimigos.init(dados_terreno)
-    Inimigos.lista = {}
+    Inimigos.lista     = {}
     Inimigos.projeteis = {}
     Inimigos.explosoes = {}
     Inimigos.segmentos = {}
@@ -193,7 +39,6 @@ function Inimigos.init(dados_terreno)
         for _, i in ipairs(dados_terreno.inimigos) do
             local tipo_base = i.tipo
             local direcao_fixa = nil
-
             if tipo_base == "statue_dir" then
                 tipo_base = "statue"
                 direcao_fixa = 1
@@ -201,7 +46,6 @@ function Inimigos.init(dados_terreno)
                 tipo_base = "statue"
                 direcao_fixa = -1
             end
-
             local cfg = CONFIG[tipo_base]
             if cfg then
                 table.insert(Inimigos.lista, {
@@ -241,22 +85,13 @@ end
 
 local function atualizar_orbo(inimigo, player)
     local cfg = inimigo.cfg
-
     if inimigo.timer_global == nil then
-        inimigo.timer_global = 0
-        inimigo.orbita_angulo = 0
-        inimigo.flutuacao_angulo = 0
-        inimigo.atirando = false
-        inimigo.orbes_restantes = 4
-        inimigo.timer_tiro = 0
-        inimigo.timer_queda_orbe = 0
-        inimigo.esperando = false
-        inimigo.y_base = inimigo.y_inicial
+        inimigo.timer_global = 0; inimigo.orbita_angulo = 0; inimigo.flutuacao_angulo = 0
+        inimigo.atirando = false; inimigo.orbes_restantes = 4; inimigo.timer_tiro = 0
+        inimigo.timer_queda_orbe = 0; inimigo.esperando = false; inimigo.y_base = inimigo.y_inicial
     end
-
     inimigo.timer_global = inimigo.timer_global + 1
     inimigo.flutuacao_angulo = inimigo.flutuacao_angulo + cfg.velocidade_flutuante
-
     inimigo.y = inimigo.y_base + math.sin(inimigo.flutuacao_angulo) * cfg.movimento_flutuante
 
     local dx = (player.x + 8) - inimigo.x
@@ -266,13 +101,9 @@ local function atualizar_orbo(inimigo, player)
 
     if not inimigo.atirando and not inimigo.esperando and inimigo.orbes_restantes > 0 then
         inimigo.orbita_angulo = inimigo.orbita_angulo + cfg.velocidade_orbita
-
         local mesma_altura = math.abs(inimigo.y - (player.y + 16)) < 24
-
         if dist < cfg.raio_deteccao and mesmo_lado and mesma_altura then
-            inimigo.atirando = true
-            inimigo.timer_tiro = 0
-            inimigo.timer_queda_orbe = 0
+            inimigo.atirando = true; inimigo.timer_tiro = 0; inimigo.timer_queda_orbe = 0
             inimigo.orbita_angulo = -math.pi / 2
         end
     end
@@ -280,35 +111,24 @@ local function atualizar_orbo(inimigo, player)
     if inimigo.esperando then
         inimigo.timer_tiro = inimigo.timer_tiro + 1
         if inimigo.timer_tiro >= cfg.intervalo_tiro then
-            inimigo.esperando = false
-            inimigo.timer_queda_orbe = 0
+            inimigo.esperando = false; inimigo.timer_queda_orbe = 0
             inimigo.orbita_angulo = -math.pi / 2
         end
-
     elseif inimigo.atirando then
         inimigo.timer_queda_orbe = inimigo.timer_queda_orbe + 1
-
         if inimigo.timer_queda_orbe >= cfg.tempo_queda then
             inimigo.orbes_restantes = inimigo.orbes_restantes - 1
-
             local dir_tiro = (dx > 0) and 1 or -1
             table.insert(Inimigos.projeteis, {
-                x = inimigo.x,
-                y = inimigo.y,
-                vx = cfg.velocidade_tiro * dir_tiro,
-                vy = 0,
-                gravidade = 0, quique = 0,
-                timer = 240,
-                frame = 1, timer_anim = 0,
-                sprite_estado = "orbo_orbita",
+                x = inimigo.x, y = inimigo.y,
+                vx = cfg.velocidade_tiro * dir_tiro, vy = 0,
+                gravidade = 0, quique = 0, timer = 240,
+                frame = 1, timer_anim = 0, sprite_estado = "orbo_orbita"
             })
-
             if inimigo.orbes_restantes <= 0 then
                 inimigo.atirando = false
             else
-                inimigo.atirando = false
-                inimigo.esperando = true
-                inimigo.timer_tiro = 0
+                inimigo.atirando = false; inimigo.esperando = true; inimigo.timer_tiro = 0
             end
         end
     end
@@ -318,6 +138,7 @@ local function atualizar_crab(inimigo, player)
     local cfg = inimigo.cfg
     local dx = (player.x + 8) - inimigo.x
     if inimigo.cooldown > 0 then inimigo.cooldown = inimigo.cooldown - 1 end
+
     if inimigo.modo == "anda" then
         inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
         if inimigo.x > inimigo.x_inicial + cfg.alcance then inimigo.direcao = -1
@@ -325,7 +146,9 @@ local function atualizar_crab(inimigo, player)
         local chao = Mapa.altura_suporte(inimigo.x, inimigo.y, 32)
         if chao then inimigo.y = chao - 8 end
         if inimigo.cooldown <= 0 and math.abs(dx) < cfg.alcance_arco then
-            inimigo.modo = "ataque"; inimigo.timer_modo = 0; inimigo.atirou_neste_ciclo = false; inimigo.direcao = (dx >= 0) and 1 or -1
+            inimigo.modo = "ataque"; inimigo.timer_modo = 0
+            inimigo.atirou_neste_ciclo = false
+            inimigo.direcao = (dx >= 0) and 1 or -1
         end
     elseif inimigo.modo == "ataque" then
         inimigo.timer_modo = inimigo.timer_modo + 1
@@ -333,73 +156,61 @@ local function atualizar_crab(inimigo, player)
             inimigo.atirou_neste_ciclo = true
             for i = 1, 2 do
                 local dir = (i == 1) and -1 or 1
-                table.insert(Inimigos.projeteis, { x = inimigo.x, y = inimigo.y - 6, vx = cfg.velocidade_projetil_x * dir, vy = cfg.velocidade_projetil_y, gravidade = GRAVIDADE_PROJETIL, timer = 240, frame = 1, timer_anim = 0 })
+                table.insert(Inimigos.projeteis, {
+                    x = inimigo.x, y = inimigo.y - 6,
+                    vx = cfg.velocidade_projetil_x * dir, vy = cfg.velocidade_projetil_y,
+                    gravidade = GRAVIDADE_PROJETIL, timer = 240, frame = 1, timer_anim = 0
+                })
             end
         end
-        if inimigo.timer_modo >= cfg.duracao_ataque then inimigo.modo = "anda"; inimigo.timer_modo = 0; inimigo.cooldown = cfg.cooldown_ataque end
+        if inimigo.timer_modo >= cfg.duracao_ataque then
+            inimigo.modo = "anda"; inimigo.timer_modo = 0; inimigo.cooldown = cfg.cooldown_ataque
+        end
     end
 end
 
 local function atualizar_burr(inimigo, player)
     local cfg = inimigo.cfg
     local dx = (player.x + 8) - inimigo.x
-
     if inimigo.modo_estado == nil then
-        inimigo.modo_estado = "escondido"
-        inimigo.velocidade_y = 0
+        inimigo.modo_estado = "escondido"; inimigo.velocidade_y = 0
         inimigo.y_escondido = inimigo.y_inicial + 24
-        inimigo.y = inimigo.y_escondido
-        inimigo.timer_estado = 0
+        inimigo.y = inimigo.y_escondido; inimigo.timer_estado = 0
     end
-
     inimigo.timer_estado = inimigo.timer_estado + 1
 
     if inimigo.modo_estado == "escondido" then
-        inimigo.modo = "ataque"
-        inimigo.velocidade_y = 0
+        inimigo.modo = "ataque"; inimigo.velocidade_y = 0
         if math.abs(dx) < cfg.raio_deteccao then
-            inimigo.modo_estado = "pulando"
-            inimigo.velocidade_y = cfg.forca_pulo
-            inimigo.timer_estado = 0
-            inimigo.direcao = (dx >= 0) and 1 or -1
+            inimigo.modo_estado = "pulando"; inimigo.velocidade_y = cfg.forca_pulo
+            inimigo.timer_estado = 0; inimigo.direcao = (dx >= 0) and 1 or -1
         end
-
     elseif inimigo.modo_estado == "pulando" then
         inimigo.modo = "ataque"
         inimigo.velocidade_y = inimigo.velocidade_y + cfg.gravidade
         inimigo.y = inimigo.y + inimigo.velocidade_y
-
         local chao = Mapa.altura_suporte(inimigo.x, inimigo.y + 8, 32)
         if chao and inimigo.y + 8 >= chao and inimigo.velocidade_y > 0 then
-            inimigo.y = chao - 14
-            inimigo.velocidade_y = 0
-            inimigo.modo_estado = "andando"
-            inimigo.timer_estado = 0
+            inimigo.y = chao - 14; inimigo.velocidade_y = 0
+            inimigo.modo_estado = "andando"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.modo_estado == "andando" then
         inimigo.modo = "anda"
         inimigo.direcao = (dx >= 0) and 1 or -1
         inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
-
         local chao = Mapa.altura_suporte(inimigo.x, inimigo.y + 8, 32)
         if chao then inimigo.y = chao - 14 end
-
         if math.abs(dx) > cfg.raio_deteccao * 1.5 and inimigo.timer_estado > cfg.duracao_anda then
-            inimigo.modo_estado = "voltando"
-            inimigo.timer_estado = 0
+            inimigo.modo_estado = "voltando"; inimigo.timer_estado = 0
         end
         if inimigo.timer_estado > cfg.duracao_anda * 2 then
-            inimigo.modo_estado = "voltando"
-            inimigo.timer_estado = 0
+            inimigo.modo_estado = "voltando"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.modo_estado == "voltando" then
         inimigo.modo = "anda"
         local dx_ini = inimigo.x_inicial - inimigo.x
         if math.abs(dx_ini) < 1 then
-            inimigo.modo_estado = "escondido"
-            inimigo.y = inimigo.y_escondido
+            inimigo.modo_estado = "escondido"; inimigo.y = inimigo.y_escondido
             inimigo.timer_estado = 0
         else
             inimigo.direcao = (dx_ini >= 0) and 1 or -1
@@ -414,6 +225,7 @@ local function atualizar_buzz(inimigo, player)
     local cfg = inimigo.cfg
     local dist = distancia_ao_player(inimigo, player)
     if inimigo.cooldown > 0 then inimigo.cooldown = inimigo.cooldown - 1 end
+
     if inimigo.modo == "anda" then
         inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
         if inimigo.x > inimigo.x_inicial + cfg.alcance then inimigo.direcao = -1
@@ -427,7 +239,9 @@ local function atualizar_buzz(inimigo, player)
                 inimigo.y = inimigo.y + math.max(-cfg.velocidade, math.min(cfg.velocidade, dy))
                 inimigo.direcao = (dx >= 0) and 1 or -1
             else
-                inimigo.modo = "ataque"; inimigo.timer_modo = 0; inimigo.atirou_neste_ciclo = false; inimigo.direcao = (dx >= 0) and 1 or -1
+                inimigo.modo = "ataque"; inimigo.timer_modo = 0
+                inimigo.atirou_neste_ciclo = false
+                inimigo.direcao = (dx >= 0) and 1 or -1
             end
         end
     elseif inimigo.modo == "ataque" then
@@ -435,16 +249,21 @@ local function atualizar_buzz(inimigo, player)
         if not inimigo.atirou_neste_ciclo then
             inimigo.atirou_neste_ciclo = true
             local vel = cfg.velocidade_projetil
-            table.insert(Inimigos.projeteis, { x = inimigo.x, y = inimigo.y + 4, vx = vel * inimigo.direcao, vy = vel, gravidade = 0, timer = 200, frame = 1, timer_anim = 0 })
+            table.insert(Inimigos.projeteis, {
+                x = inimigo.x, y = inimigo.y + 4,
+                vx = vel * inimigo.direcao, vy = vel,
+                gravidade = 0, timer = 200, frame = 1, timer_anim = 0
+            })
         end
-        if inimigo.timer_modo >= cfg.duracao_ataque then inimigo.modo = "anda"; inimigo.timer_modo = 0; inimigo.cooldown = cfg.cooldown_ataque end
+        if inimigo.timer_modo >= cfg.duracao_ataque then
+            inimigo.modo = "anda"; inimigo.timer_modo = 0; inimigo.cooldown = cfg.cooldown_ataque
+        end
     end
 end
 
 local function atualizar_cater(inimigo, player)
     local cfg = inimigo.cfg
     local dx = (player.x + 8) - inimigo.x
-
     if inimigo.cooldown == nil then inimigo.cooldown = 0 end
     if inimigo.cooldown > 0 then inimigo.cooldown = inimigo.cooldown - 1 end
 
@@ -460,35 +279,23 @@ local function atualizar_cater(inimigo, player)
     if inimigo.cooldown <= 0 and math.abs(dx) < cfg.raio_deteccao then
         inimigo.cooldown = cfg.cooldown_ataque
         local dir = (dx >= 0) and 1 or -1
-
         for i = 1, cfg.num_segmentos do
             local offset_x = (i - 2.5) * 8 * dir
             local pos_x = inimigo.x + offset_x
             table.insert(Inimigos.segmentos, {
-                x = pos_x,
-                y = inimigo.y - 4,
-                x_centro = pos_x,
+                x = pos_x, y = inimigo.y - 4, x_centro = pos_x,
                 vx = cfg.forca_pulo_x_base * dir * (1 + i * 0.1),
                 vy = cfg.forca_pulo_y - (i * 0.3),
-                gravidade = cfg.gravidade_segmento,
-                atrito = cfg.atrito_horizontal,
-                limite = cfg.limite_espalhamento,
-                is_cabeca = false,
+                gravidade = cfg.gravidade_segmento, atrito = cfg.atrito_horizontal,
+                limite = cfg.limite_espalhamento, is_cabeca = false
             })
         end
-
         table.insert(Inimigos.segmentos, {
-            x = inimigo.x,
-            y = inimigo.y - 4,
-            x_centro = inimigo.x,
-            vx = cfg.forca_pulo_x_base * dir,
-            vy = cfg.forca_pulo_y,
-            gravidade = cfg.gravidade_segmento,
-            atrito = cfg.atrito_horizontal,
-            limite = cfg.limite_espalhamento,
-            is_cabeca = true,
+            x = inimigo.x, y = inimigo.y - 4, x_centro = inimigo.x,
+            vx = cfg.forca_pulo_x_base * dir, vy = cfg.forca_pulo_y,
+            gravidade = cfg.gravidade_segmento, atrito = cfg.atrito_horizontal,
+            limite = cfg.limite_espalhamento, is_cabeca = true
         })
-
         inimigo.vivo = false
     end
 end
@@ -496,7 +303,6 @@ end
 local function atualizar_ballhog(inimigo, player)
     local cfg = inimigo.cfg
     local dx = math.abs((player.x + 8) - inimigo.x)
-
     if inimigo.cooldown == nil then inimigo.cooldown = 0 end
     if inimigo.cooldown > 0 then inimigo.cooldown = inimigo.cooldown - 1 end
 
@@ -506,36 +312,25 @@ local function atualizar_ballhog(inimigo, player)
         elseif inimigo.x < inimigo.x_inicial - cfg.alcance then inimigo.direcao = 1 end
         local chao = Mapa.altura_suporte(inimigo.x, inimigo.y, 32)
         if chao then inimigo.y = chao - 11 end
-
         if inimigo.cooldown <= 0 and dx < cfg.raio_deteccao then
-            inimigo.modo = "ataque"
-            inimigo.timer_modo = 0
-            inimigo.atirou_neste_ciclo = false
+            inimigo.modo = "ataque"; inimigo.timer_modo = 0; inimigo.atirou_neste_ciclo = false
             local ddx = (player.x + 8) - inimigo.x
             inimigo.direcao = (ddx >= 0) and 1 or -1
         end
-
     elseif inimigo.modo == "ataque" then
         inimigo.timer_modo = inimigo.timer_modo + 1
         if not inimigo.atirou_neste_ciclo then
             inimigo.atirou_neste_ciclo = true
             table.insert(Inimigos.projeteis, {
-                x = inimigo.x,
-                y = inimigo.y - 4,
-                vx = cfg.velocidade_bala * inimigo.direcao,
-                vy = -1.5,
-                gravidade = cfg.gravidade_bala,
-                quique = cfg.quique_bala,
-                timer = cfg.tempo_bala,
-                frame = 1, timer_anim = 0,
-                sprite_estado = "ballhog_bala",
-                is_bola_ballhog = true,
+                x = inimigo.x, y = inimigo.y - 4,
+                vx = cfg.velocidade_bala * inimigo.direcao, vy = -1.5,
+                gravidade = cfg.gravidade_bala, quique = cfg.quique_bala,
+                timer = cfg.tempo_bala, frame = 1, timer_anim = 0,
+                sprite_estado = "ballhog_bala", is_bola_ballhog = true
             })
         end
         if inimigo.timer_modo >= cfg.duracao_ataque then
-            inimigo.modo = "anda"
-            inimigo.timer_modo = 0
-            inimigo.cooldown = cfg.cooldown_ataque
+            inimigo.modo = "anda"; inimigo.timer_modo = 0; inimigo.cooldown = cfg.cooldown_ataque
         end
     end
 end
@@ -544,115 +339,81 @@ local function atualizar_statue(inimigo, player)
     local cfg = inimigo.cfg
     if inimigo.cooldown == nil then inimigo.cooldown = cfg.cooldown_ataque end
     if inimigo.cooldown > 0 then
-        inimigo.cooldown = inimigo.cooldown - 1
-        inimigo.modo = "anda"
-        return
+        inimigo.cooldown = inimigo.cooldown - 1; inimigo.modo = "anda"; return
     end
-
     inimigo.modo = "anda"
-
-    if inimigo.direcao_fixa then
-        inimigo.direcao = inimigo.direcao_fixa
-    end
-
+    if inimigo.direcao_fixa then inimigo.direcao = inimigo.direcao_fixa end
     table.insert(Inimigos.projeteis, {
-        x = inimigo.x,
-        y = inimigo.y,
-        vx = cfg.velocidade_projetil * inimigo.direcao,
-        vy = 0,
-        gravidade = 0,
-        quique = 0,
-        timer = cfg.tempo_projetil,
-        frame = 1, timer_anim = 0,
-        sprite_estado = "statue_ataq",
-        is_statue_shot = true,
+        x = inimigo.x, y = inimigo.y,
+        vx = cfg.velocidade_projetil * inimigo.direcao, vy = 0,
+        gravidade = 0, quique = 0, timer = cfg.tempo_projetil,
+        frame = 1, timer_anim = 0, sprite_estado = "statue_ataq", is_statue_shot = true
     })
-
     inimigo.cooldown = cfg.cooldown_ataque
 end
 
 local function atualizar_bomb(inimigo, player)
     local cfg = inimigo.cfg
     local dx = math.abs((player.x + 8) - inimigo.x)
-
     if inimigo.estado_bomb == nil then
-        inimigo.estado_bomb = "andando"
-        inimigo.timer_estado = 0
+        inimigo.estado_bomb = "andando"; inimigo.timer_estado = 0
     end
-
     inimigo.timer_estado = inimigo.timer_estado + 1
 
     if inimigo.estado_bomb == "andando" then
-    inimigo.modo = "anda"
-
-    local chao_atual = Mapa.altura_suporte(inimigo.x, inimigo.y + 12, 32)
-
-    if inimigo.caindo then
-        inimigo.velocidade_y = (inimigo.velocidade_y or 0) + 0.3
-        inimigo.y = inimigo.y + inimigo.velocidade_y
-        local chao_baixo = Mapa.altura_suporte(inimigo.x, inimigo.y + 12, 16)
-        if chao_baixo and inimigo.y + 6 >= chao_baixo then
-            inimigo.y = chao_baixo - 6
-            inimigo.velocidade_y = 0
-            inimigo.caindo = false
-            inimigo.x_inicial = inimigo.x
-        end
-    else
-        inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
-        if inimigo.x > inimigo.x_inicial + cfg.alcance then inimigo.direcao = -1
-        elseif inimigo.x < inimigo.x_inicial - cfg.alcance then inimigo.direcao = 1 end
-
-        local chao_novo = Mapa.altura_suporte(inimigo.x, inimigo.y + 12, 32)
-        if not chao_novo then
-            inimigo.caindo = true
-            inimigo.velocidade_y = 0
+        inimigo.modo = "anda"
+        if inimigo.caindo then
+            inimigo.velocidade_y = (inimigo.velocidade_y or 0) + 0.3
+            inimigo.y = inimigo.y + inimigo.velocidade_y
+            local chao_baixo = Mapa.altura_suporte(inimigo.x, inimigo.y + 12, 16)
+            if chao_baixo and inimigo.y + 6 >= chao_baixo then
+                inimigo.y = chao_baixo - 6; inimigo.velocidade_y = 0
+                inimigo.caindo = false; inimigo.x_inicial = inimigo.x
+            end
         else
-            inimigo.y = chao_novo - 6
+            inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
+            if inimigo.x > inimigo.x_inicial + cfg.alcance then inimigo.direcao = -1
+            elseif inimigo.x < inimigo.x_inicial - cfg.alcance then inimigo.direcao = 1 end
+            local chao_novo = Mapa.altura_suporte(inimigo.x, inimigo.y + 12, 32)
+            if not chao_novo then
+                inimigo.caindo = true; inimigo.velocidade_y = 0
+            else
+                inimigo.y = chao_novo - 6
+            end
         end
-    end
-
-    if not inimigo.caindo then
-        local dx2 = math.abs((player.x + 8) - inimigo.x)
-        if dx2 < cfg.raio_deteccao then
-            inimigo.estado_bomb = "acendendo"
-            inimigo.timer_estado = 0
-            local ddx = (player.x + 8) - inimigo.x
-            inimigo.direcao = (ddx >= 0) and 1 or -1
+        if not inimigo.caindo then
+            local dx2 = math.abs((player.x + 8) - inimigo.x)
+            if dx2 < cfg.raio_deteccao then
+                inimigo.estado_bomb = "acendendo"; inimigo.timer_estado = 0
+                local ddx = (player.x + 8) - inimigo.x
+                inimigo.direcao = (ddx >= 0) and 1 or -1
+            end
         end
-    end
-
         if dx < cfg.raio_deteccao then
-            inimigo.estado_bomb = "acendendo"
-            inimigo.timer_estado = 0
+            inimigo.estado_bomb = "acendendo"; inimigo.timer_estado = 0
             local ddx = (player.x + 8) - inimigo.x
             inimigo.direcao = (ddx >= 0) and 1 or -1
         end
-
-        elseif inimigo.estado_bomb == "acendendo" then
+    elseif inimigo.estado_bomb == "acendendo" then
         inimigo.modo = "ataque"
-
         inimigo.timer_anim = inimigo.timer_anim + 1
         if inimigo.timer_anim >= 4 then
             inimigo.timer_anim = 0
             inimigo.frame_anim = (inimigo.frame_anim == 1) and 2 or 1
         end
-
         if inimigo.timer_estado >= cfg.duracao_pavio then
             local velocidade = cfg.velocidade_bala
             local balas = {
-                { vx = -velocidade,      vy = -2.5 },
-                { vx =  velocidade,      vy = -2.5 },
+                { vx = -velocidade, vy = -2.5 },
+                { vx = velocidade, vy = -2.5 },
                 { vx = -velocidade * 0.6, vy = -3.5 },
-                { vx =  velocidade * 0.6, vy = -3.5 },
+                { vx = velocidade * 0.6, vy = -3.5 },
             }
             for _, b in ipairs(balas) do
                 table.insert(Inimigos.projeteis, {
                     x = inimigo.x, y = inimigo.y - 4,
-                    vx = b.vx, vy = b.vy,
-                    gravidade = cfg.gravidade_bala,
-                    timer = 240,
-                    frame = 1, timer_anim = 0,
-                    sprite_estado = "bala",
+                    vx = b.vx, vy = b.vy, gravidade = cfg.gravidade_bala,
+                    timer = 240, frame = 1, timer_anim = 0, sprite_estado = "bala"
                 })
             end
             Inimigos.criar_explosao(inimigo.x, inimigo.y)
@@ -663,38 +424,27 @@ end
 
 local function atualizar_neutron(inimigo, player)
     local cfg = inimigo.cfg
-
     if inimigo.estado_neutron == nil then
-        inimigo.estado_neutron = "invisivel"
-        inimigo.timer_estado = 0
-        inimigo.alpha = 0
+        inimigo.estado_neutron = "invisivel"; inimigo.timer_estado = 0; inimigo.alpha = 0
     end
-
     inimigo.timer_estado = inimigo.timer_estado + 1
 
     if inimigo.estado_neutron == "invisivel" then
-        inimigo.modo = "anda"
-        inimigo.alpha = 0
+        inimigo.modo = "anda"; inimigo.alpha = 0
         local dx = (player.x + 8) - inimigo.x
         local dy = (player.y + 16) - inimigo.y
         local dist = math.sqrt(dx * dx + dy * dy)
         if dist < cfg.raio_deteccao then
-            inimigo.estado_neutron = "fade_in"
-            inimigo.timer_estado = 0
+            inimigo.estado_neutron = "fade_in"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.estado_neutron == "fade_in" then
         inimigo.modo = "anda"
         inimigo.alpha = math.min(1, inimigo.timer_estado / cfg.duracao_fade_in)
         if inimigo.timer_estado >= cfg.duracao_fade_in then
-            inimigo.alpha = 1
-            inimigo.estado_neutron = "esperando"
-            inimigo.timer_estado = 0
+            inimigo.alpha = 1; inimigo.estado_neutron = "esperando"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.estado_neutron == "esperando" then
-        inimigo.modo = "anda"
-        inimigo.alpha = 1
+        inimigo.modo = "anda"; inimigo.alpha = 1
         if inimigo.timer_estado >= cfg.duracao_espera then
             local dx = (player.x + 8) - inimigo.x
             local dy = (player.y + 16) - inimigo.y
@@ -704,66 +454,49 @@ local function atualizar_neutron(inimigo, player)
                 x = inimigo.x, y = inimigo.y,
                 vx = math.cos(angulo) * cfg.velocidade_tiro,
                 vy = math.sin(angulo) * cfg.velocidade_tiro,
-                gravidade = 0, quique = 0,
-                timer = 240,
-                frame = 1, timer_anim = 0,
-                sprite_estado = "bala",
+                gravidade = 0, quique = 0, timer = 240,
+                frame = 1, timer_anim = 0, sprite_estado = "bala"
             })
-            inimigo.estado_neutron = "pos_tiro"
-            inimigo.timer_estado = 0
+            inimigo.estado_neutron = "pos_tiro"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.estado_neutron == "pos_tiro" then
-        inimigo.modo = "anda"
-        inimigo.alpha = 1
+        inimigo.modo = "anda"; inimigo.alpha = 1
         if inimigo.timer_estado >= cfg.duracao_pos_tiro then
-            inimigo.estado_neutron = "fade_out"
-            inimigo.timer_estado = 0
+            inimigo.estado_neutron = "fade_out"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.estado_neutron == "fade_out" then
         inimigo.modo = "anda"
         inimigo.alpha = math.max(0, 1 - (inimigo.timer_estado / cfg.duracao_fade_out))
         if inimigo.timer_estado >= cfg.duracao_fade_out then
-            inimigo.alpha = 0
-            inimigo.vivo = false
+            inimigo.alpha = 0; inimigo.vivo = false
         end
     end
 end
 
 local function atualizar_jaws(inimigo, player)
     local cfg = inimigo.cfg
-
     if inimigo.estado == nil then
-        inimigo.estado = "flutuando"
-        inimigo.flutuacao_angulo = 0
-        inimigo.timer_estado = 0
-        inimigo.y_base = inimigo.y_inicial
+        inimigo.estado = "flutuando"; inimigo.flutuacao_angulo = 0
+        inimigo.timer_estado = 0; inimigo.y_base = inimigo.y_inicial
     end
-
     inimigo.timer_estado = inimigo.timer_estado + 1
 
     local areas = Mapa.get_areas_agua and Mapa.get_areas_agua() or {}
     local sonic_na_agua = false
     for _, area in ipairs(areas) do
         if player.x > area.x and player.x < area.x + area.w
-           and player.y > area.y and player.y < area.y + area.h then
-            sonic_na_agua = true
-            break
+        and player.y > area.y and player.y < area.y + area.h then
+            sonic_na_agua = true; break
         end
     end
 
-    local jaws_na_agua = false
-    local area_atual = nil
+    local jaws_na_agua = false; local area_atual = nil
     for _, area in ipairs(areas) do
         if inimigo.x > area.x and inimigo.x < area.x + area.w
-           and inimigo.y > area.y and inimigo.y < area.y + area.h then
-            jaws_na_agua = true
-            area_atual = area
-            break
+        and inimigo.y > area.y and inimigo.y < area.y + area.h then
+            jaws_na_agua = true; area_atual = area; break
         end
     end
-
     if not jaws_na_agua then return end
 
     local dx = (player.x + 8) - inimigo.x
@@ -772,79 +505,51 @@ local function atualizar_jaws(inimigo, player)
 
     if not sonic_na_agua then
         if inimigo.estado ~= "flutuando" and inimigo.estado ~= "recuperando" then
-            inimigo.estado = "recuperando"
-            inimigo.timer_estado = 0
+            inimigo.estado = "recuperando"; inimigo.timer_estado = 0
         end
-        if dist > cfg.raio_saida then
-            inimigo.estado = "flutuando"
-        end
+        if dist > cfg.raio_saida then inimigo.estado = "flutuando" end
     end
 
     if inimigo.estado == "flutuando" then
         inimigo.modo = "anda"
-
-        if dist < cfg.raio_deteccao then
-            inimigo.direcao = (dx >= 0) and 1 or -1
-        end
-
+        if dist < cfg.raio_deteccao then inimigo.direcao = (dx >= 0) and 1 or -1 end
         if sonic_na_agua and dist < cfg.raio_deteccao then
-            inimigo.estado = "perseguindo"
-            inimigo.timer_estado = 0
+            inimigo.estado = "perseguindo"; inimigo.timer_estado = 0
         end
-
         inimigo.flutuacao_angulo = inimigo.flutuacao_angulo + cfg.flutuacao_velocidade
         inimigo.y = inimigo.y_base + math.sin(inimigo.flutuacao_angulo) * cfg.flutuacao_amplitude
-
     elseif inimigo.estado == "perseguindo" then
-        inimigo.modo = "anda"
-        inimigo.direcao = (dx >= 0) and 1 or -1
-
+        inimigo.modo = "anda"; inimigo.direcao = (dx >= 0) and 1 or -1
         local atan2 = math.atan2 or math.atan
         local angulo = atan2(dy, dx)
         inimigo.x = inimigo.x + math.cos(angulo) * cfg.velocidade_normal
         inimigo.y = inimigo.y + math.sin(angulo) * cfg.velocidade_normal
-
         if inimigo.timer_estado >= cfg.duracao_perseguicao then
-            inimigo.estado = "atacando"
-            inimigo.timer_estado = 0
+            inimigo.estado = "atacando"; inimigo.timer_estado = 0
         end
-
-        if dist > cfg.raio_saida then
-            inimigo.estado = "flutuando"
-        end
-
+        if dist > cfg.raio_saida then inimigo.estado = "flutuando" end
     elseif inimigo.estado == "atacando" then
-        inimigo.modo = "ataque"
-        inimigo.direcao = (dx >= 0) and 1 or -1
-
+        inimigo.modo = "ataque"; inimigo.direcao = (dx >= 0) and 1 or -1
         local atan2 = math.atan2 or math.atan
         local angulo = atan2(dy, dx)
         inimigo.x = inimigo.x + math.cos(angulo) * cfg.velocidade_boost
         inimigo.y = inimigo.y + math.sin(angulo) * cfg.velocidade_boost
-
         if inimigo.timer_estado >= cfg.duracao_boost or dist > cfg.raio_saida then
-            inimigo.estado = "recuperando"
-            inimigo.timer_estado = 0
+            inimigo.estado = "recuperando"; inimigo.timer_estado = 0
         end
-
     elseif inimigo.estado == "recuperando" then
-        inimigo.modo = "anda"
-        inimigo.direcao = (dx >= 0) and 1 or -1
-
+        inimigo.modo = "anda"; inimigo.direcao = (dx >= 0) and 1 or -1
         if sonic_na_agua and dist < cfg.raio_saida then
             local atan2 = math.atan2 or math.atan
             local angulo = atan2(dy, dx)
             inimigo.x = inimigo.x + math.cos(angulo) * cfg.velocidade_normal
             inimigo.y = inimigo.y + math.sin(angulo) * cfg.velocidade_normal
         end
-
         if inimigo.timer_estado >= cfg.cooldown_boost then
             if sonic_na_agua and dist < cfg.raio_deteccao then
-                inimigo.estado = "perseguindo"
-                inimigo.timer_estado = 0
+                inimigo.estado = "perseguindo"; inimigo.timer_estado = 0
             else
-                inimigo.estado = "flutuando"
-                inimigo.y_base = inimigo.y
+                inimigo.estado = "flutuando"; inimigo.y_base = inimigo.y
             end
         end
     end
@@ -860,29 +565,22 @@ end
 
 local function atualizar_chopper(inimigo, player)
     local cfg = inimigo.cfg
-
     if inimigo.estado_chopper == nil then
         inimigo.estado_chopper = "escondido"
         inimigo.y_escondido = inimigo.y_inicial
         inimigo.vy = 0
     end
-
     local dx = math.abs((player.x + 8) - inimigo.x)
-
     if inimigo.estado_chopper == "escondido" then
         inimigo.y = inimigo.y_escondido
         if dx < cfg.raio_deteccao then
-            inimigo.estado_chopper = "pulando"
-            inimigo.vy = cfg.forca_pulo
+            inimigo.estado_chopper = "pulando"; inimigo.vy = cfg.forca_pulo
         end
-
     elseif inimigo.estado_chopper == "pulando" then
         inimigo.vy = inimigo.vy + cfg.gravidade
         inimigo.y = inimigo.y + inimigo.vy
-
         if inimigo.vy > 0 and inimigo.y >= inimigo.y_escondido then
-            inimigo.y = inimigo.y_escondido
-            inimigo.vy = 0
+            inimigo.y = inimigo.y_escondido; inimigo.vy = 0
             inimigo.estado_chopper = "escondido"
         end
     end
@@ -890,93 +588,64 @@ end
 
 local function atualizar_spikes(inimigo, player)
     local cfg = inimigo.cfg
-
     inimigo.x = inimigo.x + cfg.velocidade * inimigo.direcao
     if inimigo.x > inimigo.x_inicial + cfg.alcance then inimigo.direcao = -1
     elseif inimigo.x < inimigo.x_inicial - cfg.alcance then inimigo.direcao = 1 end
-
     local chao = Mapa.altura_suporte(inimigo.x, inimigo.y, 32)
     if chao then inimigo.y = chao - 14 end
 end
 
 local function atualizar_spike_ball(inimigo, player)
     local cfg = inimigo.cfg
-
     if inimigo.estado_spike == nil then
-        inimigo.estado_spike = "movendo"
-        inimigo.sentido = 1
-        inimigo.timer_parado = 0
-
+        inimigo.estado_spike = "movendo"; inimigo.sentido = 1; inimigo.timer_parado = 0
         local d = inimigo.direcao_str or ""
         inimigo.vx, inimigo.vy = 0, 0
-
-        if d == "cima" then
-            inimigo.vy = -1
-        elseif d == "baixo" then
-            inimigo.vy = 1
-        elseif d == "esq" then
-            inimigo.vx = -1
-        elseif d == "dir" then
-            inimigo.vx = 1
-        elseif d == "cimaesq" then
-            inimigo.vx, inimigo.vy = -0.707, -0.707
-        elseif d == "cimadir" then
-            inimigo.vx, inimigo.vy = 0.707, -0.707
-        elseif d == "baixoesq" then
-            inimigo.vx, inimigo.vy = -0.707, 0.707
-        elseif d == "baixodir" then
-            inimigo.vx, inimigo.vy = 0.707, 0.707
-        else
-            inimigo.estado_spike = "parado"
-            inimigo.timer_parado = 999999
-        end
+        if d == "cima" then inimigo.vy = -1
+        elseif d == "baixo" then inimigo.vy = 1
+        elseif d == "esq" then inimigo.vx = -1
+        elseif d == "dir" then inimigo.vx = 1
+        elseif d == "cimaesq" then inimigo.vx, inimigo.vy = -0.707, -0.707
+        elseif d == "cimadir" then inimigo.vx, inimigo.vy = 0.707, -0.707
+        elseif d == "baixoesq" then inimigo.vx, inimigo.vy = -0.707, 0.707
+        elseif d == "baixodir" then inimigo.vx, inimigo.vy = 0.707, 0.707
+        else inimigo.estado_spike = "parado"; inimigo.timer_parado = 999999 end
     end
 
-    if inimigo.estado_spike == "parado" and inimigo.vx == 0 and inimigo.vy == 0 then
-        return
-    end
+    if inimigo.estado_spike == "parado" and inimigo.vx == 0 and inimigo.vy == 0 then return end
 
     if inimigo.estado_spike == "movendo" then
         inimigo.modo = "anda"
         inimigo.x = inimigo.x + inimigo.vx * cfg.velocidade * inimigo.sentido
         inimigo.y = inimigo.vy and (inimigo.y + inimigo.vy * cfg.velocidade * inimigo.sentido) or inimigo.y
-
         local dx = inimigo.x - inimigo.x_inicial
         local dy = inimigo.y - inimigo.y_inicial
         local dist = math.sqrt(dx * dx + dy * dy)
-
         if dist >= cfg.alcance then
             inimigo.x = inimigo.x_inicial + (inimigo.vx * cfg.alcance * inimigo.sentido)
             inimigo.y = inimigo.y_inicial + (inimigo.vy * cfg.alcance * inimigo.sentido)
-            inimigo.estado_spike = "parado"
-            inimigo.timer_parado = cfg.tempo_parado
+            inimigo.estado_spike = "parado"; inimigo.timer_parado = cfg.tempo_parado
         end
-
     elseif inimigo.estado_spike == "parado" then
         inimigo.modo = "anda"
         inimigo.timer_parado = inimigo.timer_parado - 1
         if inimigo.timer_parado <= 0 then
-            inimigo.estado_spike = "movendo"
-            inimigo.sentido = -inimigo.sentido
+            inimigo.estado_spike = "movendo"; inimigo.sentido = -inimigo.sentido
         end
     end
 end
 
--- NOVO: contexto do player calculado 1 vez por frame.
--- Usado por _colidir_com_player para evitar recalcular math.abs/checagens em N inimigos.
+-- Contexto agora vem do Player (fonte única de verdade).
 local function calcular_contexto_player(player)
-    return {
-        rolou = player.rodando and math.abs(player.velocidade_x) > 1.0,
-        no_ar_atacando = (not player.no_chao) and not player.em_dano and not player.em_queda and not player.vulneravel_mola_cima,
-        invencivel_ofensivo = (State.buffs and State.buffs.invencivel and State.buffs.invencivel > 0),
-        invencivel_defensivo = (player.timer_invencivel and player.timer_invencivel > 0),
-    }
+    return PlayerSys.contexto_ataque(player)
 end
 
+-- ============================================================
+-- UPDATE: apenas IA, física e animação.
+-- A colisão com o Sonic foi para Inimigos.colisoes_player,
+-- chamada DEPOIS de Player.update em game.lua.
+-- ============================================================
 function Inimigos.update(player)
-    local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
-    local ctx = calcular_contexto_player(player)
-
     for _, inimigo in ipairs(Inimigos.lista) do
         if inimigo.vivo then
             local cfg = inimigo.cfg
@@ -998,25 +667,20 @@ function Inimigos.update(player)
 
             if inimigo.modo == "anda" then
                 inimigo.timer_anim = inimigo.timer_anim + 1
-                if inimigo.timer_anim >= 8 then inimigo.timer_anim = 0; inimigo.frame_anim = inimigo.frame_anim + 1; if inimigo.frame_anim > 2 then inimigo.frame_anim = 1 end end
-            end
-
-            if inimigo.tipo ~= "statue" then
-                local half_w, half_h = inimigo.largura / 2, inimigo.altura / 2
-                if px0 < inimigo.x + half_w and px1 > inimigo.x - half_w and py0 < inimigo.y + half_h and py1 > inimigo.y - half_h then
-                    Inimigos._colidir_com_player(inimigo, player, ctx)
+                if inimigo.timer_anim >= 8 then
+                    inimigo.timer_anim = 0
+                    inimigo.frame_anim = inimigo.frame_anim + 1
+                    if inimigo.frame_anim > 2 then inimigo.frame_anim = 1 end
                 end
             end
         end
     end
 
-    -- Segmentos e cabeça do cater quicando: reusa px0..py1 em vez de recalcular
+    -- Segmentos: só física
     for i = #Inimigos.segmentos, 1, -1 do
         local s = Inimigos.segmentos[i]
-
         s.vy = s.vy + s.gravidade
         s.y = s.y + s.vy
-
         local dist_centro = s.x - s.x_centro
         if math.abs(dist_centro) > s.limite then
             s.vx = -s.vx * 0.8
@@ -1024,34 +688,14 @@ function Inimigos.update(player)
         end
         s.vx = s.vx * (s.atrito or 1.0)
         s.x = s.x + s.vx
-
         local chao = Mapa.altura_suporte(s.x, s.y + 8, 16)
         if chao and s.y + 8 >= chao and s.vy > 0 then
-            s.y = chao - 8
-            s.vy = -4.0
+            s.y = chao - 8; s.vy = -4.0
         end
-
-        if px0 < s.x + 6 and px1 > s.x - 6 and py0 < s.y + 6 and py1 > s.y - 6 then
-            if s.is_cabeca then
-                if ctx.rolou or ctx.no_ar_atacando then
-                    Inimigos.criar_explosao(s.x, s.y)
-                    for j = #Inimigos.segmentos, 1, -1 do
-                        table.remove(Inimigos.segmentos, j)
-                    end
-                    break
-                else
-                    PlayerSys.aplicar_dano(player)
-                end
-            else
-                PlayerSys.aplicar_dano(player)
-            end
-        end
-
-        if s.y > 1200 then
-            table.remove(Inimigos.segmentos, i)
-        end
+        if s.y > 1200 then table.remove(Inimigos.segmentos, i) end
     end
 
+    -- Projéteis: só física e descarte
     for i = #Inimigos.projeteis, 1, -1 do
         local p = Inimigos.projeteis[i]
         p.x = p.x + p.vx
@@ -1062,166 +706,186 @@ function Inimigos.update(player)
         if p.is_bola_ballhog then
             p.vy = p.vy + 0.3
             p.y = p.y + p.vy
-
             local chao_atual = Mapa.altura_suporte(p.x, p.y + 4, 24)
-
             if chao_atual then
                 local pes_bola = p.y + 4
                 if pes_bola >= chao_atual then
                     p.y = chao_atual - 4
-
                     if p.vy > 1.0 then
                         p.vy = -p.vy * p.quique
                         if math.abs(p.vy) < 0.5 then p.vy = 0 end
                     else
                         p.vy = 0
                     end
-
                     local passo = 8
                     local chao_frente = Mapa.altura_suporte(p.x + passo, chao_atual, 16)
-
                     if chao_frente then
                         local variacao = chao_atual - chao_frente
                         p.vx = p.vx - (variacao * 0.03)
                     end
-
                     p.vx = p.vx * 0.997
-
-                    if math.abs(p.vx) < 0.05 then
-                        p.vx = 0
-                    end
+                    if math.abs(p.vx) < 0.05 then p.vx = 0 end
                 end
             end
         end
 
-        local removeu = false
-        if p.timer <= 0 then
-            removeu = true
-        elseif px0 < p.x + 6 and px1 > p.x - 6 and py0 < p.y + 6 and py1 > p.y - 6 then
-            PlayerSys.aplicar_dano(player)
-            if not p.is_bola_ballhog then
-                removeu = true
-            end
-        elseif p.y > 1024 then
-            removeu = true
-        elseif not p.is_bola_ballhog and Mapa.colide_projetil(p.x - 3, p.y - 3, 6, 6) then
-            removeu = true
+        if p.timer <= 0 or p.y > 1024
+        or (not p.is_bola_ballhog and Mapa.colide_projetil(p.x - 3, p.y - 3, 6, 6)) then
+            table.remove(Inimigos.projeteis, i)
         end
-        if removeu then table.remove(Inimigos.projeteis, i) end
     end
 
     for i = #Inimigos.explosoes, 1, -1 do
         local e = Inimigos.explosoes[i]
         e.timer = e.timer + 1
-        if e.timer >= 5 then e.timer = 0; e.frame = e.frame + 1; if e.frame > 3 then table.remove(Inimigos.explosoes, i) end end
+        if e.timer >= 5 then
+            e.timer = 0
+            e.frame = e.frame + 1
+            if e.frame > 3 then table.remove(Inimigos.explosoes, i) end
+        end
     end
 end
 
--- Assinatura nova: recebe ctx (pré-computado por Inimigos.update)
+-- ============================================================
+-- COLISÕES COM O SONIC — rodar DEPOIS de Player.update.
+-- Hitbox e contexto são relidos a cada teste (nada de dados velhos).
+-- ============================================================
+function Inimigos.colisoes_player(player)
+    if not player or player.morto then return end
+
+    for _, inimigo in ipairs(Inimigos.lista) do
+        if inimigo.vivo and inimigo.tipo ~= "statue" then
+            local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
+            local half_w, half_h = inimigo.largura / 2, inimigo.altura / 2
+            if px0 < inimigo.x + half_w and px1 > inimigo.x - half_w
+            and py0 < inimigo.y + half_h and py1 > inimigo.y - half_h then
+                Inimigos._colidir_com_player(inimigo, player)
+                if player.morto or player.em_dano then return end
+            end
+        end
+    end
+
+    for i = #Inimigos.segmentos, 1, -1 do
+        local s = Inimigos.segmentos[i]
+        local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
+        if px0 < s.x + 6 and px1 > s.x - 6 and py0 < s.y + 6 and py1 > s.y - 6 then
+            if s.is_cabeca then
+                if PlayerSys.acertar_alvo(player, s.y - 6, 6) then
+                    Inimigos.criar_explosao(s.x, s.y)
+                    for j = #Inimigos.segmentos, 1, -1 do table.remove(Inimigos.segmentos, j) end
+                    return
+                else
+                    PlayerSys.aplicar_dano(player)
+                    if player.morto or player.em_dano then return end
+                end
+            else
+                -- corpo do caterkiller sempre fere, mesmo em bola (original)
+                PlayerSys.aplicar_dano(player)
+                if player.morto or player.em_dano then return end
+            end
+        end
+    end
+
+    for i = #Inimigos.projeteis, 1, -1 do
+        local p = Inimigos.projeteis[i]
+        local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
+        if px0 < p.x + 6 and px1 > p.x - 6 and py0 < p.y + 6 and py1 > p.y - 6 then
+            PlayerSys.aplicar_dano(player)
+            if not p.is_bola_ballhog then table.remove(Inimigos.projeteis, i) end
+            if player.morto or player.em_dano then return end
+        end
+    end
+end
+
 function Inimigos._colidir_com_player(inimigo, player, ctx)
+    -- sempre recalcula: o ctx do chamador pode estar velho
+    ctx = calcular_contexto_player(player)
+
+    -- corpo da estátua é invulnerável; só o tiro fere
     if inimigo.tipo == "statue" then return end
 
+    -- bola de espinhos: sempre fere, nem estrelas destroem
+    if inimigo.tipo == "spike-ball" then PlayerSys.aplicar_dano(player); return end
+
+    -- Invulnerabilidade pós-dano NÃO bloqueia o ataque:
+    -- o Sonic atravessa sem ferir (aplicar_dano já checa o timer)
+    -- e continua destruindo inimigos se estiver em forma de bola.
+    -- (buffs.invencivel de monitor/esmeralda segue com regra própria em acertar_alvo)
+
+    local topo = inimigo.y - inimigo.altura / 2
+
+    -- BOMB (Master System): o Sonic NÃO destrói; ele se autodestrói.
+    -- Contato sempre fere, igual ao comportamento anterior.
     if inimigo.tipo == "bomb" then
         PlayerSys.aplicar_dano(player)
         return
     end
 
-    if inimigo.tipo == "spike-ball" then
-        PlayerSys.aplicar_dano(player)
-        return
-    end
-
-    if inimigo.tipo == "jaws" then
-        if not (ctx.rolou or ctx.no_ar_atacando or ctx.invencivel_ofensivo) then
+    -- CHOPPER (Master System): só morre se acertado por baixo ou pelos lados.
+    -- Acertar por cima (pés acima do centro do peixe) sempre fere.
+    if inimigo.tipo == "chopper" then
+        local acertou_topo = (player.y + PlayerSys.COLISAO_BASE_Y) < (inimigo.y + 4)
+        if acertou_topo and not ctx.invencivel_ofensivo then
             PlayerSys.aplicar_dano(player)
             return
         end
+        if PlayerSys.acertar_alvo(player, topo, 6) then
+            inimigo.vivo = false
+            Inimigos.criar_explosao(inimigo.x, inimigo.y)
+        else
+            PlayerSys.aplicar_dano(player)
+        end
+        return
+    end
 
-        local px_c, py_c = player.x + 8, player.y + 16
+    -- JAWS: dentes de frente ferem; cima/baixo/trás mata
+    if inimigo.tipo == "jaws" then
+        if not (ctx.atacando or ctx.invencivel_ofensivo) then
+            PlayerSys.aplicar_dano(player); return
+        end
+        local px_c = player.x + 8
         local dx = px_c - inimigo.x
         local pela_frente = (dx > 0 and inimigo.direcao == 1) or (dx < 0 and inimigo.direcao == -1)
-
         local de_baixo = player.y > inimigo.y + 4
         local de_cima  = player.y + 32 < inimigo.y + 4
-
-        if pela_frente and not de_baixo and not de_cima then
-            PlayerSys.aplicar_dano(player)
-        else
+        if pela_frente and not de_baixo and not de_cima and not ctx.invencivel_ofensivo then
+            PlayerSys.aplicar_dano(player); return
+        end
+        if PlayerSys.acertar_alvo(player, topo, 6) then
             inimigo.vivo = false
             Inimigos.criar_explosao(inimigo.x, inimigo.y)
-            if ctx.no_ar_atacando then
-                PlayerSys.aplicar_bounce(player)
-            end
         end
         return
     end
 
-    if inimigo.tipo == "chopper" then
-        local acertou_topo = (player.y + 28 < inimigo.y + 4)
-
-        if acertou_topo and not ctx.invencivel_ofensivo then
-            PlayerSys.aplicar_dano(player)
-        elseif ctx.rolou or ctx.no_ar_atacando or ctx.invencivel_ofensivo then
-            inimigo.vivo = false
-            Inimigos.criar_explosao(inimigo.x, inimigo.y)
-            if ctx.no_ar_atacando and not acertou_topo then
-                PlayerSys.aplicar_bounce(player)
-            end
-        else
-            PlayerSys.aplicar_dano(player)
-        end
-        return
-    end
-
+    -- SPIKES: só rolamento de frente (comportamento tipo Yadrin) — MANTIDO
     if inimigo.tipo == "spikes" then
         local dx = (player.x + 8) - inimigo.x
         local pela_frente = (dx > 0 and inimigo.direcao == 1) or (dx < 0 and inimigo.direcao == -1)
-
-        if ctx.rolou and pela_frente then
+        local rolou = player.rodando and math.abs(player.velocidade_x) > 1.0
+        if ctx.invencivel_ofensivo then
+            inimigo.vivo = false
+            Inimigos.criar_explosao(inimigo.x, inimigo.y)
+        elseif rolou and pela_frente then
             inimigo.vivo = false
             Inimigos.criar_explosao(inimigo.x, inimigo.y)
             player.velocidade_x = player.velocidade_x * 0.85
-        elseif ctx.invencivel_ofensivo then
-            inimigo.vivo = false
-            Inimigos.criar_explosao(inimigo.x, inimigo.y)
         else
             PlayerSys.aplicar_dano(player)
         end
         return
     end
 
-    if ctx.rolou or ctx.no_ar_atacando then
-        inimigo.vivo = false
-        Inimigos.criar_explosao(inimigo.x, inimigo.y)
-
-        if ctx.no_ar_atacando then
-            local veio_de_cima = player.velocidade_y > 0 and player.y + 28 < inimigo.y + 8
-            if veio_de_cima then
-                PlayerSys.aplicar_bounce(player)
-            else
-                player.velocidade_y = player.velocidade_y * 0.5
-            end
-        elseif ctx.rolou then
-            player.velocidade_x = player.velocidade_x * 0.85
-        end
-        return
-    end
-
-    if ctx.invencivel_ofensivo then
+    -- GENÉRICO (motobug, crab, buzz, burr, cater, ballhog, neutron, orbo)
+    -- Forma de bola mata em QUALQUER direção, subindo ou caindo.
+    if PlayerSys.acertar_alvo(player, topo, 6) then
         inimigo.vivo = false
         Inimigos.criar_explosao(inimigo.x, inimigo.y)
         return
     end
-
-    if ctx.invencivel_defensivo then
-        return
-    end
-
     PlayerSys.aplicar_dano(player)
 end
 
--- DESENHO: loop único por Inimigos.lista
--- Para cada inimigo vivo, desenha o sprite principal e, se for orbo, desenha também seus orbes.
 function Inimigos.draw(cam_x, cam_y)
     for _, inimigo in ipairs(Inimigos.lista) do
         if inimigo.vivo then
@@ -1230,8 +894,7 @@ function Inimigos.draw(cam_x, cam_y)
                 if alpha > 0.05 then
                     local sprite_estado, frame_use
                     if alpha >= 0.95 then
-                        sprite_estado = "neutron_anda"
-                        frame_use = 1
+                        sprite_estado = "neutron_anda"; frame_use = 1
                     else
                         sprite_estado = "neutron_fade"
                         if alpha <= 0.33 then frame_use = 1
@@ -1240,50 +903,52 @@ function Inimigos.draw(cam_x, cam_y)
                     end
                     local sprite = Sprites.sprite(sprite_estado, frame_use)
                     if sprite then
-                        ui.spr(sprite, math.floor(inimigo.x - cam_x - (sprite.width or 16)/2), math.floor(inimigo.y - cam_y - (sprite.height or 16)/2), false, false)
+                        ui.spr(sprite,
+                            math.floor(inimigo.x - cam_x - (sprite.width or 16) / 2),
+                            math.floor(inimigo.y - cam_y - (sprite.height or 16) / 2),
+                            false, false)
                     end
                 end
             else
                 local sprite_estado, frame_use
-                if inimigo.tipo == "statue" or inimigo.tipo == "orbo" or inimigo.tipo == "jaws" or inimigo.tipo == "spike-ball" then
+                if inimigo.tipo == "statue" or inimigo.tipo == "orbo"
+                or inimigo.tipo == "jaws" or inimigo.tipo == "spike-ball" then
                     sprite_estado = inimigo.modo == "ataque" and inimigo.cfg.sprite_ataq or inimigo.cfg.sprite_anda
                     frame_use = 1
                 elseif inimigo.modo == "ataque" and inimigo.cfg.sprite_ataq then
                     sprite_estado = inimigo.cfg.sprite_ataq
-                    if inimigo.tipo == "bomb" then
-                        frame_use = inimigo.frame_anim
-                    else
-                        frame_use = 1
-                    end
+                    if inimigo.tipo == "bomb" then frame_use = inimigo.frame_anim else frame_use = 1 end
                 else
                     sprite_estado = inimigo.cfg.sprite_anda
                     frame_use = inimigo.frame_anim
                 end
                 local sprite = Sprites.sprite(sprite_estado, frame_use)
                 if sprite then
-                    ui.spr(sprite, math.floor(inimigo.x - cam_x - (sprite.width or 16)/2), math.floor(inimigo.y - cam_y - (sprite.height or 16)/2), inimigo.direcao > 0, false)
+                    ui.spr(sprite,
+                        math.floor(inimigo.x - cam_x - (sprite.width or 16) / 2),
+                        math.floor(inimigo.y - cam_y - (sprite.height or 16) / 2),
+                        inimigo.direcao > 0, false)
                 end
             end
 
-            -- Orbes do orbo (era loop separado; agora inline)
             if inimigo.tipo == "orbo" and inimigo.orbes_restantes and inimigo.orbes_restantes > 0 then
                 local qtd = inimigo.orbes_restantes
                 local tempo_queda = inimigo.cfg.tempo_queda or 10
                 local raio = inimigo.cfg.raio_orbita
-
                 for i = 0, qtd - 1 do
                     local ang = inimigo.orbita_angulo + (i * math.pi / 2)
                     local ox = inimigo.x + math.cos(ang) * raio
                     local oy = inimigo.y + math.sin(ang) * raio
-
                     if inimigo.atirando and i == 0 then
                         local progresso = inimigo.timer_queda_orbe / tempo_queda
                         oy = oy + (raio * 2) * progresso
                     end
-
                     local sprite = Sprites.sprite("orbo_orbita", 1)
                     if sprite then
-                        ui.spr(sprite, math.floor(ox - cam_x - (sprite.width or 8)/2), math.floor(oy - cam_y - (sprite.height or 8)/2), false, false)
+                        ui.spr(sprite,
+                            math.floor(ox - cam_x - (sprite.width or 8) / 2),
+                            math.floor(oy - cam_y - (sprite.height or 8) / 2),
+                            false, false)
                     end
                 end
             end
@@ -1294,7 +959,10 @@ function Inimigos.draw(cam_x, cam_y)
         local sprite_estado = s.is_cabeca and "cater_cabeca" or "cater_segmento"
         local sprite = Sprites.sprite(sprite_estado, 1)
         if sprite then
-            ui.spr(sprite, math.floor(s.x - cam_x - (sprite.width or 8)/2), math.floor(s.y - cam_y - (sprite.height or 8)/2), false, false)
+            ui.spr(sprite,
+                math.floor(s.x - cam_x - (sprite.width or 8) / 2),
+                math.floor(s.y - cam_y - (sprite.height or 8) / 2),
+                false, false)
         end
     end
 
@@ -1303,17 +971,21 @@ function Inimigos.draw(cam_x, cam_y)
         local sprite = Sprites.sprite(estado, p.frame or 1)
         if sprite then
             local flip = false
-            if estado == "statue_ataq" and p.vx > 0 then
-                flip = true
-            end
-            ui.spr(sprite, math.floor(p.x - cam_x - (sprite.width or 8)/2), math.floor(p.y - cam_y - (sprite.height or 8)/2), flip, false)
+            if estado == "statue_ataq" and p.vx > 0 then flip = true end
+            ui.spr(sprite,
+                math.floor(p.x - cam_x - (sprite.width or 8) / 2),
+                math.floor(p.y - cam_y - (sprite.height or 8) / 2),
+                flip, false)
         end
     end
 
     for _, e in ipairs(Inimigos.explosoes) do
         local sprite = Sprites.sprite("explode", e.frame)
         if sprite then
-            ui.spr(sprite, math.floor(e.x - cam_x - (sprite.width or 16)/2), math.floor(e.y - cam_y - (sprite.height or 16)/2), false, false)
+            ui.spr(sprite,
+                math.floor(e.x - cam_x - (sprite.width or 16) / 2),
+                math.floor(e.y - cam_y - (sprite.height or 16) / 2),
+                false, false)
         end
     end
 end

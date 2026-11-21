@@ -73,7 +73,7 @@
          "offsetx":-120,
          "offsety":-10,
          "opacity":1,
-         "parallaxx":0.8,
+         "parallaxx":0.7,
          "parallaxy":0.8,
          "type":"tilelayer",
          "visible":true,
@@ -2103,11 +2103,11 @@
                          "y":0
                         }, 
                         {
-                         "x":-32,
+                         "x":-48,
                          "y":0
                         }, 
                         {
-                         "x":-32,
+                         "x":-48,
                          "y":32
                         }, 
                         {
@@ -2826,6 +2826,12 @@
                  "id":45,
                  "name":"mola_esq",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":10
+                        }],
                  "rotation":0,
                  "type":"mola",
                  "visible":true,
@@ -2838,6 +2844,12 @@
                  "id":54,
                  "name":"mola_cima",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":12
+                        }],
                  "rotation":90,
                  "type":"mola",
                  "visible":true,
@@ -2850,6 +2862,12 @@
                  "id":55,
                  "name":"mola_cima",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":15
+                        }],
                  "rotation":90,
                  "type":"mola",
                  "visible":true,
@@ -2862,6 +2880,12 @@
                  "id":56,
                  "name":"mola_cima",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":15
+                        }],
                  "rotation":90,
                  "type":"mola",
                  "visible":true,
@@ -2874,6 +2898,12 @@
                  "id":57,
                  "name":"mola_cima",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":14
+                        }],
                  "rotation":90,
                  "type":"mola",
                  "visible":true,
@@ -2891,7 +2921,7 @@
                  "visible":true,
                  "width":16,
                  "x":676,
-                 "y":126
+                 "y":124
                 }, 
                 {
                  "height":16,
@@ -2903,7 +2933,7 @@
                  "visible":true,
                  "width":16,
                  "x":168,
-                 "y":382
+                 "y":380
                 }, 
                 {
                  "height":16,
@@ -2915,7 +2945,7 @@
                  "visible":true,
                  "width":16,
                  "x":72,
-                 "y":894
+                 "y":892
                 }, 
                 {
                  "height":16,
@@ -2927,7 +2957,7 @@
                  "visible":true,
                  "width":16,
                  "x":714,
-                 "y":350
+                 "y":348
                 }, 
                 {
                  "height":16,
@@ -2939,7 +2969,7 @@
                  "visible":true,
                  "width":16,
                  "x":328,
-                 "y":574
+                 "y":572
                 }, 
                 {
                  "height":16,
@@ -2951,7 +2981,7 @@
                  "visible":true,
                  "width":16,
                  "x":1319,
-                 "y":798
+                 "y":796
                 }, 
                 {
                  "height":16,
@@ -2963,7 +2993,7 @@
                  "visible":true,
                  "width":16,
                  "x":2087,
-                 "y":605
+                 "y":604
                 }, 
                 {
                  "height":0,
@@ -3021,7 +3051,7 @@
                  "visible":true,
                  "width":0,
                  "x":2608,
-                 "y":420
+                 "y":427
                 }, 
                 {
                  "height":0,

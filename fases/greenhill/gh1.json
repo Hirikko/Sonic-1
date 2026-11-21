@@ -2744,6 +2744,12 @@
                  "id":64,
                  "name":"mola_esq",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"forca",
+                         "type":"int",
+                         "value":12
+                        }],
                  "rotation":0,
                  "type":"mola",
                  "visible":true,
@@ -2807,7 +2813,7 @@
                  "visible":true,
                  "width":16,
                  "x":888,
-                 "y":221
+                 "y":220
                 }, 
                 {
                  "height":16,
@@ -2819,7 +2825,7 @@
                  "visible":true,
                  "width":16,
                  "x":2625,
-                 "y":285
+                 "y":284
                 }, 
                 {
                  "height":16,
@@ -2831,7 +2837,7 @@
                  "visible":true,
                  "width":16,
                  "x":4096,
-                 "y":381
+                 "y":380
                 }, 
                 {
                  "height":16,
@@ -2843,7 +2849,7 @@
                  "visible":true,
                  "width":16,
                  "x":1936,
-                 "y":189
+                 "y":191
                 }, 
                 {
                  "height":16,
@@ -2855,7 +2861,7 @@
                  "visible":true,
                  "width":16,
                  "x":5236,
-                 "y":221
+                 "y":220
                 }, 
                 {
                  "height":0,
@@ -2876,7 +2882,7 @@
                  "visible":true,
                  "width":0,
                  "x":6304,
-                 "y":267
+                 "y":266
                 }, 
                 {
                  "height":16,
@@ -2888,7 +2894,7 @@
                  "visible":true,
                  "width":16,
                  "x":1048,
-                 "y":285
+                 "y":284
                 }, 
                 {
                  "height":16,

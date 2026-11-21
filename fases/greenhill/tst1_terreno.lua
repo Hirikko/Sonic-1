@@ -1,7 +1,7 @@
 local Terreno = {
     spawn_x = 639.0, spawn_y = 261.5,
     parallax = {
-        x = 0.8,
+        x = 0.7,
         y = 0.8,
         offset_x = 0,
         offset_y = -11,
@@ -73,12 +73,20 @@ local Terreno = {
     esmeraldas = {
     },
     areas_agua = {
-        { x = 0, y = 224, w = 576, h = 80 },
+        { x = 0, y = 224, w = 576, h = 80, pontos = { 0, 224, 576, 224, 576, 304, 0, 304 } },
+    },
+    pontos_ar = {
+        { x = 106.01, y = 297.34 },
     },
     sensores_queda = {
     },
     outros = {
         { tipo = 'venceu', nome = 'placa_final', x = 32, y = 131, w = 0, h = 32, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_cont', x = 591, y = 204, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_anel', x = 401.58, y = 143.46, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_escudo', x = 495.57, y = 157.57, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_salva', x = 288, y = 109, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_vida', x = 672, y = 173, w = 16, h = 16, coletado = false, ativo = true },
     },
     inimigos = {
         { tipo = 'bomb', x = 1157.67, y = 202.0, w = 10, h = 12, direcao = '' },
@@ -102,8 +110,11 @@ local Terreno = {
         { tipo = 'spike-ball', x = 791.0, y = 151.0, w = 14, h = 14, direcao = 'baixoesq' },
         { tipo = 'spike-ball', x = 759.0, y = 151.0, w = 14, h = 14, direcao = 'baixodir' },
         { tipo = 'spike-ball', x = 775.0, y = 135.0, w = 14, h = 14, direcao = '' },
+        { tipo = 'buzz', x = 856.42, y = 131.51, w = 28, h = 11, direcao = '' },
     },
     plataformas_flutuantes = {
+    },
+    plataformas_chefe = {
     },
 }
 return Terreno

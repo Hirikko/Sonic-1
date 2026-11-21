@@ -55,6 +55,12 @@ local ANIMACOES = {
         spikes_anda  = { pasta = "inimigos/spikes",  frames = 2, cadencia = 10, loop = true },
         spike_ball_anda = { pasta = "inimigos/spike-ball", frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
 
+        -- Chefes
+        chefe_gh3_andar  = { pasta = "inimigos/chefes/gh3/andar",  frames = 2, cadencia = 1, loop = false, },
+        chefe_gh3_ataq   = { pasta = "inimigos/chefes/gh3/ataq",   frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
+        chefe_gh3_doeu   = { pasta = "inimigos/chefes/gh3/doeu",   frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
+        chefe_gh3_perdeu = { pasta = "inimigos/chefes/gh3/perdeu", frames = 2, cadencia = 8, loop = true },
+
         -- Monitores (estática = f1 + fX alternando; fX = efeito)
         monitor_anel          = { pasta = "objetos/monitores",   frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
         monitor_sapato_rapido = { pasta = "objetos/monitores",   frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },

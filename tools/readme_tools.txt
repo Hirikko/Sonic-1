@@ -1,12 +1,18 @@
 Gerar terreno:
 
-gh:
-python3 tools/gerar_terreno.py fases/greenhill/gh1.json fases/greenhill/gh1_terreno.lua
-python3 tools/gerar_terreno.py fases/greenhill/gh2.json fases/greenhill/gh2_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/greenhill/gh1.json lupinho-sdk/src/fases/greenhill/gh1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/greenhill/gh2.json lupinho-sdk/src/fases/greenhill/gh2_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/greenhill/gh3.json lupinho-sdk/src/fases/greenhill/gh3_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/bridgezone/bz1.json lupinho-sdk/src/fases/bridgezone/bz1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/junglezone/jz1.json lupinho-sdk/src/fases/junglezone/jz1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/labyrinthzone/lz1.json lupinho-sdk/src/fases/labyrinthzone/lz1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/scrapbrain/sc1.json lupinho-sdk/src/fases/scrapbrain/sc1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/skybasezone/sbz1.json lupinho-sdk/src/fases/skybasezone/sbz1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/specialzone/sp1.json lupinho-sdk/src/fases/specialzone/sp1_terreno.lua
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/greenhill/tst1.json lupinho-sdk/src/fases/greenhill/tst1_terreno.lua
 
 tst:
-python3 tools/gerar_terreno.py fases/greenhill/tst1.json fases/greenhill/tst1_terreno.lua
-
+python3 lupinho-sdk/src/tools/gerar_terreno.py lupinho-sdk/src/fases/greenhill/tst1.json lupinho-sdk/src/fases/greenhill/tst1_terreno.lua
 
 Recuperar .Json
 Como usar:

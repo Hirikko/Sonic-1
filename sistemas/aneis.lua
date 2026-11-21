@@ -9,7 +9,6 @@ local TEMPO_COLETA = 8
 local TEMPO_ESPALHADO = 240
 local GRAVIDADE_ANEL = 0.4
 
--- NOVO: cache de sprite por frame (frames 1-7)
 local cache_anel = {}
 local cache_anel_coleta = nil
 
@@ -25,6 +24,15 @@ local function sprite_anel_coleta()
     if cache_anel_coleta then return cache_anel_coleta end
     cache_anel_coleta = Sprites.sprite("aneis", 7)
     return cache_anel_coleta
+end
+
+-- NOVO: Centraliza a lógica de limite de anéis
+local function adicionar_anel()
+    State.inventory.aneis = State.inventory.aneis + 1
+    if State.inventory.aneis >= 100 then
+        State.inventory.aneis = 0
+        State.vidas = State.vidas + 1
+    end
 end
 
 function Aneis.init(dados_terreno)
@@ -53,7 +61,7 @@ function Aneis.espalhar_aneis(x, y, quantidade)
             timer = TEMPO_ESPALHADO,
             coletado = false,
             timer_coleta = 0,
-            frame_par = 0,  -- NOVO: contador para espaçar checks de chão
+            frame_par = 0,
         })
     end
 end
@@ -78,7 +86,7 @@ function Aneis.update(player)
             if (dx * dx + dy * dy) < (RAIO_COLETA * RAIO_COLETA) then
                 anel.coletado = true
                 anel.timer_coleta = TEMPO_COLETA
-                State.inventory.aneis = State.inventory.aneis + 1
+                adicionar_anel()
             end
         end
     end
@@ -94,7 +102,6 @@ function Aneis.update(player)
             anel.y = anel.y + anel.vy
             anel.vx = anel.vx * 0.98
 
-            -- NOVO: checa chão a cada 2 frames por anel (spread temporal)
             anel.frame_par = anel.frame_par + 1
             if anel.frame_par >= 2 then
                 anel.frame_par = 0
@@ -116,7 +123,7 @@ function Aneis.update(player)
                 if (dx * dx + dy * dy) < (RAIO_COLETA * RAIO_COLETA) then
                     anel.coletado = true
                     anel.timer_coleta = TEMPO_COLETA
-                    State.inventory.aneis = State.inventory.aneis + 1
+                    adicionar_anel()
                 end
             end
         end

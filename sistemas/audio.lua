@@ -73,38 +73,98 @@ function Audio.update(state)
         return
     end
 
-    -- 4. Fim da invencibilidade
-    if musica_atual == "invenc" and not invencivel then
-        if musica_fundo == "greenhill" then
-            music.loop("audio/bgm/greenhill", FADE_LONGO)
-        elseif musica_fundo == "tst_1" then
-            music.loop("audio/bgm/skysanct-unused", FADE_LONGO)
-        elseif musica_fundo == "tst_2" then
-            music.loop("audio/bgm/marblezn-unused", FADE_LONGO)
-        end
-        musica_atual = musica_fundo
-    end
+ -- 4. Fim da invencibilidade
+ if musica_atual == "invenc" and not invencivel then
+     if state.chefe_ativo and not state.chefe_derrotado then
+         -- voltou da invencibilidade no meio da luta
+         music.loop("audio/bgm/chefe", FADE_LONGO)
+         musica_atual = "chefe"
+     else
+         if musica_fundo == "greenhill" then
+             music.loop("audio/bgm/greenhill", FADE_LONGO)
+         elseif musica_fundo == "tst_1" then
+             music.loop("audio/bgm/skysanct-unused", FADE_LONGO)
+         elseif musica_fundo == "tst_2" then
+             music.loop("audio/bgm/marblezn-unused", FADE_LONGO)
+         end
+         musica_atual = musica_fundo
+     end
+ end
+ -- 4.5 Música do chefe: prioridade sobre a música da fase.
+ -- musica_fundo NÃO é alterada aqui, para saber para onde voltar depois.
+ if cena == state.SCREEN_GAME then
+     if state.chefe_ativo and not state.chefe_derrotado then
+         if musica_atual ~= "chefe" then
+             if musica_atual == "actstart" then music.stop(0) end
+             music.loop("audio/bgm/chefe", FADE_CURTO)
+             musica_atual = "chefe"
+         end
+         return
+     elseif musica_atual == "chefe" then
+         -- luta encerrada (ou fase resetada): retoma a música de fundo
+         if musica_fundo == "greenhill" then
+             music.loop("audio/bgm/greenhill", FADE_LONGO)
+         elseif musica_fundo == "tst_1" then
+             music.loop("audio/bgm/skysanct-unused", FADE_LONGO)
+         elseif musica_fundo == "tst_2" then
+             music.loop("audio/bgm/marblezn-unused", FADE_LONGO)
+         end
+         musica_atual = musica_fundo
+     end
+ end
 
-    -- 5. Músicas por Cena
-    if cena == state.SCREEN_TITLE then
+  -- 4.6 Cápsula acionada: música de fim de ato.
+ -- Fica AQUI (e não no objetos.lua) porque o Audio.update é quem
+ -- arbitra a música por cena — um music.loop solto em objetos.lua
+ -- seria sobrescrito pelo greenhill no frame seguinte.
+ if cena == state.SCREEN_GAME and state.chefe_liberou_animais then
+     if musica_atual ~= "venceu" then
+         music.stop(0)
+         music.loop("audio/bgm/venceu", FADE_CURTO)
+         musica_atual = "venceu"
+     end
+     return
+ end
+
+ -- 5. Músicas por Cena
+ if cena == state.SCREEN_TITLE then
         if musica_atual ~= "titulo" then
             music.loop("audio/bgm/titulo", FADE_LONGO)
             musica_atual = "titulo"
             musica_fundo = "titulo"
         end
 
-    elseif cena == state.SCREEN_STAGE_PREVIEW then
-        if musica_atual ~= "actstart" and musica_atual ~= "actstart_feito" then
-            music.loop("audio/fx/actstart", FADE_CURTO)
-            musica_atual = "actstart"
-            timer_actstart = 180
-        end
+elseif cena == state.SCREEN_STAGE_PREVIEW then
+     if state.fase_e_chefe and state.fase_e_chefe() then
+         -- fase de chefe: BGM do chefe no preview, sem actstart
+         if musica_atual ~= "chefe" then
+             if musica_atual == "actstart" then music.stop(0) end
+             music.loop("audio/bgm/chefe", FADE_CURTO)
+             musica_atual = "chefe"
+         end
+     elseif musica_atual ~= "actstart" and musica_atual ~= "actstart_feito" then
+         music.loop("audio/fx/actstart", FADE_CURTO)
+         musica_atual = "actstart"
+         timer_actstart = 170
+     end
 
     elseif cena == state.SCREEN_GAME then
         local stage = state.stages[state.stage_atual]
         local sigla = stage and stage.sigla or ""
 
-        if sigla == "gh" then
+     if sigla == "sp" then
+         if musica_atual ~= "salabonus" then
+             music.loop("audio/bgm/salabonus", FADE_CURTO)
+             musica_atual = "salabonus"
+             musica_fundo = "salabonus"
+         end
+     elseif sigla == "bz" then
+         if musica_atual ~= "bridgezn" then
+             music.loop("audio/bgm/bridgezn", FADE_CURTO)
+             musica_atual = "bridgezn"
+             musica_fundo = "bridgezn"
+         end
+     elseif sigla == "gh" then
             if musica_atual ~= "greenhill" then
                 if musica_atual == "actstart" then
                     music.stop(0)
@@ -151,8 +211,33 @@ function Audio.update(state)
             end
         end
 
-    -- 6. Tela de Vitória, Game Over e Seleção de Fase
-    elseif cena == state.SCREEN_VICTORY or cena == state.SCREEN_GAME_OVER or cena == state.SCREEN_STAGE_SELECT then
+    -- 5.5 Cursor da seleção numa fase de chefe: BGM do chefe
+    elseif cena == state.SCREEN_STAGE_SELECT and state.fase_e_chefe and state.fase_e_chefe() then
+        if musica_atual ~= "chefe" then
+            if musica_atual == "actstart" then music.stop(0) end
+            music.loop("audio/bgm/chefe", FADE_CURTO)
+            musica_atual = "chefe"
+        end
+
+    -- 6. Vitória: tema normal ou de esmeralda
+    elseif cena == state.SCREEN_VICTORY then
+        local id = state.esmeralda_no_ato and "vence_esmeralda" or "venceu"
+        if musica_atual ~= id then
+            music.stop(0)
+            music.loop("audio/bgm/" .. id, FADE_CURTO)
+            musica_atual = id
+            musica_fundo = nil
+        end
+    -- 7. Derrota
+    elseif cena == state.SCREEN_GAME_OVER then
+        if musica_atual ~= "perdeu" then
+            music.stop(0)
+            music.loop("audio/bgm/perdeu", FADE_CURTO)
+            musica_atual = "perdeu"
+            musica_fundo = nil
+        end
+    -- 8. Seleção de fase continua em silêncio
+    elseif cena == state.SCREEN_STAGE_SELECT then
         if musica_atual ~= "parado" then
             music.stop(FADE_LONGO)
             musica_atual = "parado"
