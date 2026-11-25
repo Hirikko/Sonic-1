@@ -2,7 +2,7 @@ local Terreno = {
     spawn_x = 179.0, spawn_y = 723.5,
     parallax = {
         x = 0.7,
-        y = 0.9,
+        y = 0.8,
         offset_x = 1,
         offset_y = 1,
     },
@@ -62,7 +62,7 @@ local Terreno = {
     pendulos = {
     },
     molas = {
-        { tipo = 'mola_cima', classe = 'mola', x = 730, y = 934, largura = 10, altura = 5, forca = 14, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 719.5, y = 934.0, largura = 16.0, altura = 10.0, forca = 14, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
     },
     aneis = {
         { x = 835.0, y = 924.5, coletado = false },
@@ -82,12 +82,18 @@ local Terreno = {
     },
     sensores_queda = {
     },
+    ponte_falsa = {
+    },
     outros = {
         { tipo = 'monitores', nome = 'monitor_vida', x = 935, y = 924, w = 16, h = 16, coletado = false, ativo = true },
     },
     inimigos = {
     },
     plataformas_flutuantes = {
+    },
+    pontes = {
+    },
+    balancas = {
     },
     plataformas_chefe = {
     },

@@ -31,6 +31,7 @@ local x_entrada    = 0
 local travessias   = 0
 local anim_timer   = 0
 local anim_frame   = 1
+local estado_antes_dano = nil
 
 -- Timing (60 fps)
 local VEL_HORIZONTAL   = 1.0
@@ -55,6 +56,14 @@ local FLUTUA_VEL = 0.09
 -- Sprites.sprite ignora frames/cadencia do ANIMACOES; a alternância
 -- do andar é feita aqui. 8f = 7,5 fps, igual ao Eggman do mapa.
 local CADENCIA_ANDAR = 8
+-- Dano no MEIO do ataque: janela curta para caber 2+ hits por passada.
+-- Fora do ataque continuam valendo TEMPO_DANO / TEMPO_INVENCIVEL (120f),
+-- que é o que bloqueia o combo aéreo.
+local TEMPO_DANO_ATAQUE = 30
+local TEMPO_INV_ATAQUE  = 30
+-- Meia vida: +35% em todo o movimento e no ataque (ajustável)
+local BOOST_MEIA_VIDA = 1.35
+local HP_MEIA_VIDA    = 3
 
 
 -- Sequência de derrota: morrendo -> derrotado -> fugindo
@@ -145,7 +154,7 @@ function Chefe.init(dados)
         anim_timer = 0
         anim_frame = 1
         travessias = 0
-
+        estado_antes_dano = nil
         estado       = "aparecer"
         timer_estado = 0
         direcao      = -1
@@ -190,6 +199,12 @@ function Chefe.update(player)
         anim_frame = (anim_frame == 1) and 2 or 1
     end
 
+    -- Meia vida: acelera movimento e ataque
+    local fv = (Chefe.hp <= HP_MEIA_VIDA) and BOOST_MEIA_VIDA or 1.0
+    local v_hor  = VEL_HORIZONTAL * fv
+    local v_ver  = VEL_VERTICAL   * fv
+    local v_atq  = VEL_ATAQUE     * fv
+
     -- --------------------------------------------------------------
     -- aparecer -> aguardar -> topo -> descer -> esperar -> atacar -> subir
     -- --------------------------------------------------------------
@@ -217,7 +232,7 @@ function Chefe.update(player)
     elseif estado == "topo_esq" then
         local alvo = min_x + MARGEM_ARENA_X
         if Chefe.x > alvo then
-            Chefe.x = Chefe.x - VEL_HORIZONTAL
+            Chefe.x = Chefe.x - v_hor
         else
             Chefe.x    = alvo
             travessias = travessias + 1
@@ -234,7 +249,7 @@ function Chefe.update(player)
     elseif estado == "topo_dir" then
         local alvo = max_x - MARGEM_ARENA_X
         if Chefe.x < alvo then
-            Chefe.x = Chefe.x + VEL_HORIZONTAL
+            Chefe.x = Chefe.x + v_hor
         else
             Chefe.x    = alvo
             travessias = travessias + 1
@@ -251,7 +266,7 @@ function Chefe.update(player)
     elseif estado == "descer_esq" or estado == "descer_dir" then
         local alvo_y = y_inicial + OFFSET_DESCIDA
         if Chefe.y < alvo_y then
-            Chefe.y = Chefe.y + VEL_VERTICAL
+            Chefe.y = Chefe.y + v_ver
         else
             Chefe.y      = alvo_y
             estado       = "esperar"
@@ -269,8 +284,8 @@ function Chefe.update(player)
                        and (max_x - MARGEM_ARENA_X)
                        or  (min_x + MARGEM_ARENA_X)
         local dx = alvo_x - Chefe.x
-        if math.abs(dx) > VEL_ATAQUE then
-            Chefe.x = Chefe.x + (dx > 0 and VEL_ATAQUE or -VEL_ATAQUE)
+        if math.abs(dx) > v_atq then
+            Chefe.x = Chefe.x + (dx > 0 and v_atq or -v_atq)
         else
             Chefe.x      = alvo_x
             estado       = (lado_atual == -1) and "subir_dir" or "subir_esq"
@@ -279,7 +294,7 @@ function Chefe.update(player)
 
     elseif estado == "subir_esq" or estado == "subir_dir" then
         if Chefe.y > y_topo then
-            Chefe.y = Chefe.y - VEL_VERTICAL
+            Chefe.y = Chefe.y - v_ver
         else
             Chefe.y = y_topo
             -- vai para o lado OPOSTO de onde está
@@ -290,10 +305,13 @@ function Chefe.update(player)
         end
 
     elseif estado == "dano" then
-        if timer_estado >= TEMPO_DANO then
-            -- NÃO zerar invencivel: ele decai sozinho no topo do update
-            estado       = "subir_esq"
-            timer_estado = 0
+        local dur = estado_antes_dano and TEMPO_DANO_ATAQUE or TEMPO_DANO
+        if timer_estado >= dur then
+            -- Se foi atingido no meio do ataque, RETOMA o ataque de onde
+            -- parou em vez de cancelar e subir.
+            estado            = estado_antes_dano or "subir_esq"
+            estado_antes_dano = nil
+            timer_estado      = 0
         end
 
     elseif estado == "morrendo" then
@@ -347,30 +365,42 @@ function Chefe.update(player)
     local sem_colisao = (estado == "aparecer" or estado == "aguardar"
                          or estado == "dano" or estado == "morrendo"
                          or estado == "derrotado" or estado == "fugindo")
-
-    if not player.morto and not sem_colisao and Chefe.invencivel <= 0 then
-        local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
+    -- COOP: testa TODOS os players. O Chefe.update recebe so o ref,
+    -- entao sem este laco o P2 nao dava nem levava dano.
+    local State = require("state")
+    local alvos = State.players or { player }
+    for _, alvo in ipairs(alvos) do
+      if alvo and not alvo.morto and not alvo.coop_esperando
+         and not sem_colisao and Chefe.invencivel <= 0 then
+        local px0, py0, px1, py1 = PlayerSys.get_hitbox(alvo)
         if px0 < Chefe.x + Chefe.w / 2 and px1 > Chefe.x - Chefe.w / 2
         and py0 < Chefe.y + Chefe.h / 2 and py1 > Chefe.y - Chefe.h / 2 then
-            local ctx = PlayerSys.contexto_ataque(player)
+            local ctx = PlayerSys.contexto_ataque(alvo)
             -- Só fere se os pés do Sonic vinham de cima do centro dele.
             local acertou_por_cima = ctx.pes_prev <= (Chefe.y + 4)
             if (ctx.atacando and acertou_por_cima) or ctx.invencivel_ofensivo then
+                local no_ataque  = (estado == "atacar")
                 Chefe.hp         = Chefe.hp - 1
-                Chefe.invencivel = TEMPO_INVENCIVEL
-                PlayerSys.aplicar_bounce(player, ctx.vy_impacto)
+                Chefe.invencivel = no_ataque and TEMPO_INV_ATAQUE or TEMPO_INVENCIVEL
+                PlayerSys.aplicar_bounce(alvo, ctx.vy_impacto)
+                ui.log(string.format("[BOSS] hit pad=%s vy_imp=%.2f -> vy=%.2f no_chao=%s bounce=%s",
+                    tostring(alvo.pad), ctx.vy_impacto, alvo.velocidade_y,
+                    tostring(alvo.no_chao), tostring(alvo.bounce_frames)))
                 if Chefe.hp <= 0 then
-                    estado         = "morrendo"
-                    timer_estado   = 0
-                    Chefe.cutscene = true
+                    estado            = "morrendo"
+                    timer_estado      = 0
+                    Chefe.cutscene    = true
+                    estado_antes_dano = nil
                 else
-                    estado       = "dano"
-                    timer_estado = 0
+                    estado_antes_dano = no_ataque and "atacar" or nil
+                    estado            = "dano"
+                    timer_estado      = 0
                 end
             elseif not ctx.invencivel_defensivo then
-                PlayerSys.aplicar_dano(player)
+                PlayerSys.aplicar_dano(alvo)
             end
         end
+      end
     end
 
     atualizar_direcao()

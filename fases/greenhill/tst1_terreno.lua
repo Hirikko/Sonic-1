@@ -80,13 +80,15 @@ local Terreno = {
     },
     sensores_queda = {
     },
+    ponte_falsa = {
+    },
     outros = {
         { tipo = 'venceu', nome = 'placa_final', x = 32, y = 131, w = 0, h = 32, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_cont', x = 591, y = 204, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_anel', x = 401.58, y = 143.46, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_escudo', x = 495.57, y = 157.57, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_salva', x = 288, y = 109, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'monitores', nome = 'monitor_vida', x = 672, y = 173, w = 16, h = 16, coletado = false, ativo = true },
+        { tipo = 'monitores', nome = 'monitor_vida', x = 671, y = 170, w = 16, h = 16, coletado = false, ativo = true },
     },
     inimigos = {
         { tipo = 'bomb', x = 1157.67, y = 202.0, w = 10, h = 12, direcao = '' },
@@ -113,6 +115,10 @@ local Terreno = {
         { tipo = 'buzz', x = 856.42, y = 131.51, w = 28, h = 11, direcao = '' },
     },
     plataformas_flutuantes = {
+    },
+    pontes = {
+    },
+    balancas = {
     },
     plataformas_chefe = {
     },

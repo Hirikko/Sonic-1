@@ -22,6 +22,19 @@ local crossfade_novo_path = nil
 local FADE_LONGO = 2.0
 local FADE_CURTO = 1.5
 
+-- id logico -> arquivo. Usado para restaurar a musica apos invencibilidade.
+local CAMINHO_BGM = {
+    greenhill = "audio/bgm/greenhill",
+    bridge    = "audio/bgm/bridgezn",
+    jungle    = "audio/bgm/junglezn",
+    labyrinth = "audio/bgm/labyrinthzn",
+    scrap     = "audio/bgm/scrapbrainzn",
+    skybase   = "audio/bgm/skybasezn",
+    salabonus = "audio/bgm/salabonus",
+    tst_1     = "audio/bgm/skysanct-unused",
+    tst_2     = "audio/bgm/marblezn-unused",
+}
+
 function Audio.update(state)
     if not music then return end
 
@@ -80,13 +93,8 @@ function Audio.update(state)
          music.loop("audio/bgm/chefe", FADE_LONGO)
          musica_atual = "chefe"
      else
-         if musica_fundo == "greenhill" then
-             music.loop("audio/bgm/greenhill", FADE_LONGO)
-         elseif musica_fundo == "tst_1" then
-             music.loop("audio/bgm/skysanct-unused", FADE_LONGO)
-         elseif musica_fundo == "tst_2" then
-             music.loop("audio/bgm/marblezn-unused", FADE_LONGO)
-         end
+         local caminho = CAMINHO_BGM[musica_fundo]
+         if caminho then music.loop(caminho, FADE_LONGO) end
          musica_atual = musica_fundo
      end
  end
@@ -102,16 +110,11 @@ function Audio.update(state)
          return
      elseif musica_atual == "chefe" then
          -- luta encerrada (ou fase resetada): retoma a música de fundo
-         if musica_fundo == "greenhill" then
-             music.loop("audio/bgm/greenhill", FADE_LONGO)
-         elseif musica_fundo == "tst_1" then
-             music.loop("audio/bgm/skysanct-unused", FADE_LONGO)
-         elseif musica_fundo == "tst_2" then
-             music.loop("audio/bgm/marblezn-unused", FADE_LONGO)
-         end
+         local caminho = CAMINHO_BGM[musica_fundo]
+         if caminho then music.loop(caminho, FADE_LONGO) end
          musica_atual = musica_fundo
      end
- end
+end
 
   -- 4.6 Cápsula acionada: música de fim de ato.
  -- Fica AQUI (e não no objetos.lua) porque o Audio.update é quem
@@ -152,19 +155,43 @@ elseif cena == state.SCREEN_STAGE_PREVIEW then
         local stage = state.stages[state.stage_atual]
         local sigla = stage and stage.sigla or ""
 
-     if sigla == "sp" then
-         if musica_atual ~= "salabonus" then
-             music.loop("audio/bgm/salabonus", FADE_CURTO)
-             musica_atual = "salabonus"
-             musica_fundo = "salabonus"
-         end
-     elseif sigla == "bz" then
-         if musica_atual ~= "bridgezn" then
-             music.loop("audio/bgm/bridgezn", FADE_CURTO)
-             musica_atual = "bridgezn"
-             musica_fundo = "bridgezn"
-         end
-     elseif sigla == "gh" then
+        if sigla == "sp" then
+            if musica_atual ~= "salabonus" then
+                music.loop("audio/bgm/salabonus", FADE_CURTO)
+                musica_atual = "salabonus"
+                musica_fundo = "salabonus"
+            end
+        elseif sigla == "bz" then
+            if musica_atual ~= "bridge" then
+                music.loop("audio/bgm/bridgezn", FADE_CURTO)
+                musica_atual = "bridge"
+                musica_fundo = "bridge"
+            end
+        elseif sigla == "jz" then
+            if musica_atual ~= "jungle" then
+                music.loop("audio/bgm/junglezn", FADE_CURTO)
+                musica_atual = "jungle"
+                musica_fundo = "jungle"
+            end
+        elseif sigla == "lz" then
+            if musica_atual ~= "labyrinth" then
+                music.loop("audio/bgm/labyrinthzn", FADE_CURTO)
+                musica_atual = "labyrinth"
+                musica_fundo = "labyrinth"
+            end
+        elseif sigla == "sb" then
+            if musica_atual ~= "scrap" then
+                music.loop("audio/bgm/scrapbrainzn", FADE_CURTO)
+                musica_atual = "scrap"
+                musica_fundo = "scrap"
+            end
+        elseif sigla == "sbz" then
+            if musica_atual ~= "skybase" then
+                music.loop("audio/bgm/skybasezn", FADE_CURTO)
+                musica_atual = "skybase"
+                musica_fundo = "skybase"
+            end
+        elseif sigla == "gh" then
             if musica_atual ~= "greenhill" then
                 if musica_atual == "actstart" then
                     music.stop(0)
@@ -244,6 +271,7 @@ elseif cena == state.SCREEN_STAGE_PREVIEW then
             musica_fundo = nil
         end
     end
+
 end
 
 function Audio.parar()

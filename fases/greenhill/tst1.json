@@ -204,15 +204,15 @@
                 }, 
                 {
                  "height":16,
-                 "id":64,
+                 "id":70,
                  "name":"monitor_vida",
                  "opacity":1,
                  "rotation":0,
                  "type":"monitores",
                  "visible":true,
                  "width":16,
-                 "x":672,
-                 "y":173
+                 "x":671,
+                 "y":170
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1079,7 +1079,7 @@
          "y":0
         }],
  "nextlayerid":12,
- "nextobjectid":66,
+ "nextobjectid":76,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

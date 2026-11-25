@@ -3149,7 +3149,7 @@
                  "visible":true,
                  "width":0,
                  "x":1168,
-                 "y":333
+                 "y":331
                 }, 
                 {
                  "height":24,
@@ -3160,7 +3160,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3196,7 +3196,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3214,7 +3214,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3232,7 +3232,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3250,7 +3250,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3268,7 +3268,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3286,7 +3286,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3304,7 +3304,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3322,7 +3322,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3340,7 +3340,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3358,7 +3358,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3376,7 +3376,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3394,7 +3394,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3412,7 +3412,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3430,7 +3430,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3448,7 +3448,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3466,7 +3466,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3484,7 +3484,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3502,7 +3502,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3520,7 +3520,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":10
+                         "value":11
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3538,7 +3538,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3556,7 +3556,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3574,7 +3574,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3592,7 +3592,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3610,7 +3610,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3628,7 +3628,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3646,7 +3646,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3664,7 +3664,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3682,7 +3682,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3700,7 +3700,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3718,7 +3718,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",
@@ -3736,7 +3736,7 @@
                         {
                          "name":"forca",
                          "type":"int",
-                         "value":15
+                         "value":14
                         }],
                  "rotation":90,
                  "type":"mola_esp",

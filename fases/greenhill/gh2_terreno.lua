@@ -217,10 +217,10 @@ local Terreno = {
     },
     molas = {
         { tipo = 'mola_esq', classe = 'mola', x = 1174.32, y = 838, largura = 10, altura = 5, forca = 10, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
-        { tipo = 'mola_cima', classe = 'mola', x = 1275, y = 838, largura = 10, altura = 5, forca = 12, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
-        { tipo = 'mola_cima', classe = 'mola', x = 1275, y = 550, largura = 10, altura = 5, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
-        { tipo = 'mola_cima', classe = 'mola', x = 875, y = 357, largura = 10, altura = 5, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
-        { tipo = 'mola_cima', classe = 'mola', x = 1947.25, y = 613.25, largura = 10, altura = 5, forca = 14, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1264.5, y = 838.0, largura = 16.0, altura = 10.0, forca = 12, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1264.5, y = 550.0, largura = 16.0, altura = 10.0, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 864.5, y = 357.0, largura = 16.0, altura = 10.0, forca = 15, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
+        { tipo = 'mola_cima', classe = 'mola', x = 1936.75, y = 613.25, largura = 16.0, altura = 10.0, forca = 14, raio = 0, eixo_x = 0, eixo_y1 = 0, eixo_y2 = 0 },
     },
     aneis = {
         { x = 104.0, y = 79.5, coletado = false },
@@ -293,6 +293,8 @@ local Terreno = {
     sensores_queda = {
         { x = 256, y = 96, w = 0, h = 48 },
     },
+    ponte_falsa = {
+    },
     outros = {
         { tipo = 'monitores', nome = 'monitor_anel', x = 676, y = 124, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_escudo', x = 168, y = 380, w = 16, h = 16, coletado = false, ativo = true },
@@ -312,7 +314,11 @@ local Terreno = {
         { tipo = 'buzz', x = 1459.0, y = 509.0, w = 28, h = 11, direcao = '' },
     },
     plataformas_flutuantes = {
-        { x = 1248, y = 144, largura = 32, altura = 16, x_inicial = 1248, amplitude = 64, velocidade = 1.0, direcao = 1 },
+        { x = 1248, y = 144, largura = 32, altura = 16, x_inicial = 1248, y_inicial = 144, amplitude = 64, velocidade = 1.0, direcao = 1, modo = 'horizontal' },
+    },
+    pontes = {
+    },
+    balancas = {
     },
     plataformas_chefe = {
     },

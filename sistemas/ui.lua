@@ -4,6 +4,22 @@ local Sprites = require("sistemas.sprites")
 local Timer = require("sistemas.timer")
 
 local ui_frame = 0
+-- Guarda de recorte: quando ativa, os helpers de tile restauram ESTE
+-- clip em vez de limpar para a tela cheia. Usado pelo preview de
+-- brilho/contraste, que desenha a fase dentro de uma janela.
+local clip_guard = nil
+
+function UI.set_clip_guard(x, y, w, h)
+    if x then clip_guard = { x, y, w, h } else clip_guard = nil end
+end
+
+local function fechar_clip()
+    if clip_guard then
+        ui.clip(clip_guard[1], clip_guard[2], clip_guard[3], clip_guard[4])
+    else
+        ui.clip()
+    end
+end
 local titulo_frame = 1
 local titulo_timer = 0
 local TITULO_CADENCIA = 18
@@ -19,6 +35,10 @@ local GH1_TRILHA_OFFSET_X = 40
 local GH1_TRILHA_OFFSET_Y = 90
 local GH2_TRILHA_OFFSET_X = 34
 local GH2_TRILHA_OFFSET_Y = 66
+-- BZ1: tile 2 da trilha-ilha-41x35 (sx = 82).
+local BZ1_TRILHA_OFFSET_X = 57
+local BZ1_TRILHA_OFFSET_Y = 67
+local BZ1_TILE_INDEX = 2
 local TST1_TRILHA_OFFSET_X = 13
 local TST1_TRILHA_OFFSET_Y = 13
 local TST1_TILE_INDEX = 5
@@ -140,7 +160,7 @@ function UI.desenhar_tile_ui(id, x, y)
     local sx, sy = get_coord_numero(id)
     ui.clip(x, y, 16, 16)
     ui.spr(FONTE_UI_16, x - sx, y - sy)
-    ui.clip()
+    fechar_clip()
 end
 
 function UI.desenhar_parte_ui(sx, sy, w, h, dx, dy)
@@ -148,7 +168,7 @@ function UI.desenhar_parte_ui(sx, sy, w, h, dx, dy)
     if not FONTE_UI_16 then return end
     ui.clip(dx, dy, w, h)
     ui.spr(FONTE_UI_16, dx - sx, dy - sy)
-    ui.clip()
+    fechar_clip()
 end
 
 local function desenhar_char_ui(char, x, y)
@@ -226,12 +246,89 @@ local function desenhar_bloco(nome, x, y)
     ui.clip()
 end
 
-local function desenhar_esmeralda_vitoria(x, y)
+-- ============================================================
+-- UI POR HEROI
+-- Sonic nao tem obj_ui: os helpers devolvem nil e o chamador
+-- mantem o desenho legado (ui-16x16 / ui-vitoria_10x15).
+-- ============================================================
+local NOME_HEROI = {
+    sonic = "SONIC", tails = "TAILS", knux = "KNUCKLES",
+    amy = "AMY", cream = "CREAM", rouge = "ROUGE",
+}
+
+local cache_ui_heroi = {}
+
+local function sprite_ui_heroi(heroi, chave)
+    heroi = heroi or "sonic"
+    if heroi == "sonic" then return nil end
+    local k = heroi .. "/" .. chave
+    local s = cache_ui_heroi[k]
+    if s == nil then
+        s = Sprites.asset("herois/" .. heroi .. "/obj_ui/ui/" .. chave) or false
+        cache_ui_heroi[k] = s
+    end
+    return s or nil
+end
+
+-- Icone de vida num slot de 16x16, centralizado.
+local function desenhar_vida_heroi(heroi, x, y)
+    local s = sprite_ui_heroi(heroi, "vida")
+    if s then
+        ui.spr(s, x + math.floor((16 - (s.width or 16)) / 2),
+                  y + math.floor((16 - (s.height or 16)) / 2), false, false)
+    else
+        desenhar_char_ui("sonic", x, y)
+    end
+end
+
+-- Icones de vida de TODOS os players do grupo, lado a lado.
+-- Devolve o x onde continua o "x NN".
+local function desenhar_icones_grupo(state, x, y)
+    local lista = state.players
+    local n = 0
+    -- passo 19 = 16 do icone + 3 de respiro entre players
+    if lista then
+        for _, p in ipairs(lista) do
+            desenhar_vida_heroi(p.heroi, x + n * 19, y)
+            n = n + 1
+        end
+    end
+    if n == 0 then
+        desenhar_vida_heroi(state.player and state.player.heroi, x, y)
+        n = 1
+    end
+    return x + (n - 1) * 19 + 16
+end
+
+local function desenhar_esmeralda_vitoria(x, y, heroi)
     carregar_fontes()
+    local s = sprite_ui_heroi(heroi, "esmeralda")
+    if s then
+        ui.spr(s, x + math.floor((14 - (s.width or 14)) / 2),
+                  y + math.floor((16 - (s.height or 16)) / 2), false, false)
+        return
+    end
     if not FONTE_AMARELA then return end
     ui.clip(x, y, 14, 16)
     ui.spr(FONTE_AMARELA, x - 97, y - 0)
     ui.clip()
+end
+
+-- Esmeralda para HUD/fase. Tenta o PNG do heroi; sem ele (Sonic),
+-- recorta a do ui-vitoria_10x15. O tile 15 do ui-16x16 NAO e esmeralda,
+-- e da familia das estrelas de invencibilidade (16 e 20).
+local function desenhar_esmeralda_ui(x, y, heroi)
+    carregar_fontes()
+    local s = sprite_ui_heroi(heroi, "esmeralda")
+    if s then
+        ui.spr(s, x + math.floor((16 - (s.width or 16)) / 2),
+                  y + math.floor((16 - (s.height or 16)) / 2), false, false)
+        return
+    end
+    if not FONTE_AMARELA then return end
+    ui.clip(x + 1, y, 14, 16)
+    ui.spr(FONTE_AMARELA, (x + 1) - 97, y)
+    fechar_clip()
 end
 
 local function desenhar_x_vitoria(x, y)
@@ -356,16 +453,28 @@ else
     desenhar_texto_ui(time_str, 10, 30, 12)
 end
 
-desenhar_char_ui("sonic", 10, 230)
-desenhar_char_ui("x", 26, 230)
-desenhar_texto_ui(tostring(state.vidas or 0), 42, 230, 12)
+local cx_vidas = desenhar_icones_grupo(state, 10, 230)
+desenhar_char_ui("x", cx_vidas, 230)
+desenhar_texto_ui(tostring(state.vidas or 0), cx_vidas + 16, 230, 12)
 end
 
 local function desenhar_vitoria(state)
     local cor_fundo = get_indice_cor(0x7DE0)
     ui.rectfill(0, 0, 480, 270, cor_fundo)
 
-    local t1 = "SONIC"
+    local heroi_v = (state.player and state.player.heroi) or "sonic"
+    local grupo = state.players
+    local em_coop = grupo and #grupo > 1
+    local t1
+    if em_coop then
+        local nomes = {}
+        for _, p in ipairs(grupo) do
+            nomes[#nomes + 1] = NOME_HEROI[p.heroi or "sonic"] or "SONIC"
+        end
+        t1 = table.concat(nomes, " E ")
+    else
+        t1 = NOME_HEROI[heroi_v] or "SONIC"
+    end
     desenhar_texto_branco(t1, 240 - (#t1 * LARGURA_BRANCA) / 2, 20)
     local stage_v = state.stages[state.stage_atual]
     if stage_v and stage_v.especial then
@@ -373,7 +482,7 @@ local function desenhar_vitoria(state)
         desenhar_texto_branco(t2, 240 - (#t2 * LARGURA_BRANCA) / 2, 45)
         desenhar_ato_e_numero(state.ato_atual or 1, POS_X_ATO, POS_Y_ATO)
     else
-        local t2 = "VENCEU O"
+        local t2 = em_coop and "VENCERAM O" or "VENCEU O"
         desenhar_texto_branco(t2, 240 - (#t2 * LARGURA_BRANCA) / 2, 45)
         desenhar_ato_e_numero(state.ato_atual or 1, POS_X_ATO, POS_Y_ATO)
     end
@@ -419,12 +528,12 @@ local function desenhar_vitoria(state)
     end
 
     local vidas_str = string.format("%02d", state.vidas or 0)
-    desenhar_char_ui("sonic", 60, 200)
-    desenhar_char_ui("x", 86, 200)
-    desenhar_texto_ui(vidas_str, 112, 200, 16)
+    local cx_vidas = desenhar_icones_grupo(state, 60, 200)
+    desenhar_char_ui("x", cx_vidas, 200)
+    desenhar_texto_ui(vidas_str, cx_vidas + 26, 200, 16)
 
     if state.esmeraldas_coletadas and state.esmeraldas_coletadas > 0 then
-        desenhar_esmeralda_vitoria(160, 197)
+        desenhar_esmeralda_vitoria(160, 197, heroi_v)
         desenhar_x_vitoria(182, 203)
         desenhar_char_ui(tostring(state.esmeraldas_coletadas), 198, 200)
         ui.print("/", 214, 206, 7)
@@ -453,7 +562,7 @@ local EGG_TILE_PARADO = 2
 local EGG_TILES_TOTAL = 4
 -- Atos com chefe: chave = sigla da zona (já existe em State.stages).
 -- Autocontido aqui, não depende de função nova no state.lua.
-local ATOS_CHEFE_MAPA = { gh = 3 }
+local ATOS_CHEFE_MAPA = { gh = 3, bz = 3, jz = 3, lz = 3, sb = 3, sbz = 3 }
 -- Trajetória da entrada no PREVIEW (total 220 frames):
 --   espera fora -> cruza p/ direita -> desce fora -> volta p/ o ponto
 local EGG_T_ESPERA   = 20
@@ -564,10 +673,17 @@ local function desenhar_mapa_e_trilha(state, piscar)
          desenhar_tile_eggman(img_eggman, tile, ex, ey, flip)
      end
  elseif math.floor(preview_anim_timer / 30) % 2 == 0 then
-        if state.stage_atual == 1 then
+        -- Por SIGLA, nao por indice: inserir zonas em State.stages
+        -- deslocava os indices e a BZ1 pegava a trilha da PESQUISA.
+        local sigla_t = (stage and stage.sigla) or ""
+        if sigla_t == "gh" or sigla_t == "bz" then
             if IMG_TRILHA_GH then
                 local trilha_x, trilha_y, sx
-                if state.ato_atual == 2 then
+                if sigla_t == "bz" then
+                    sx = BZ1_TILE_INDEX * 41
+                    trilha_x = map_x + BZ1_TRILHA_OFFSET_X
+                    trilha_y = map_y + BZ1_TRILHA_OFFSET_Y
+                elseif state.ato_atual == 2 then
                     sx = 41
                     trilha_x = map_x + GH2_TRILHA_OFFSET_X
                     trilha_y = map_y + GH2_TRILHA_OFFSET_Y
@@ -580,7 +696,7 @@ local function desenhar_mapa_e_trilha(state, piscar)
                 ui.spr(IMG_TRILHA_GH, trilha_x - sx, trilha_y)
                 ui.clip()
             end
-        elseif state.stage_atual == 2 then
+        elseif sigla_t == "tst" then
             if IMG_TRILHA_TST then
                 local trilha_x = map_x + TST1_TRILHA_OFFSET_X
                 local trilha_y = map_y + TST1_TRILHA_OFFSET_Y
@@ -598,9 +714,9 @@ local function desenhar_mapa_e_trilha(state, piscar)
     end
 
     local vidas_str = string.format("%02d", state.vidas or 0)
-    desenhar_char_ui("sonic", 20, 230)
-    desenhar_char_ui("x", 33, 230)
-    desenhar_texto_ui(vidas_str, 45, 230, 8)
+    local cx_vidas = desenhar_icones_grupo(state, 20, 230)
+    desenhar_char_ui("x", cx_vidas, 230)
+    desenhar_texto_ui(vidas_str, cx_vidas + 13, 230, 8)
 end
 
 local function desenhar_stage_preview(state)
@@ -693,7 +809,15 @@ end
 function UI.draw_hud(state)
     ui_frame = ui_frame + 1
 
-    if state.current_scene == state.SCREEN_TITLE then
+    if state.pausado_opcoes then
+        local Menus = require("sistemas.menus")
+        Menus.draw()
+        return
+    elseif state.current_scene == state.SCREEN_MENUS then
+        local Menus = require("sistemas.menus")
+        Menus.draw()
+        return
+    elseif state.current_scene == state.SCREEN_TITLE then
         desenhar_titulo()
         return
     elseif state.current_scene == state.SCREEN_STAGE_PREVIEW then
@@ -714,4 +838,6 @@ end
 
 UI.desenhar_texto_ui = desenhar_texto_ui
 UI.buscar_sprite = buscar_sprite
+UI.sprite_ui_heroi = sprite_ui_heroi
+UI.desenhar_esmeralda_ui = desenhar_esmeralda_ui
 return UI

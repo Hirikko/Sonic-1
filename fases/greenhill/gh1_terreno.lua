@@ -360,13 +360,15 @@ local Terreno = {
     },
     sensores_queda = {
     },
+    ponte_falsa = {
+    },
     outros = {
         { tipo = 'monitores', nome = 'monitor_anel', x = 888, y = 220, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_sapato_rapido', x = 2625, y = 284, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_salva', x = 4096, y = 380, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_invenc', x = 1936, y = 191, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_anel', x = 5236, y = 220, w = 16, h = 16, coletado = false, ativo = true },
-        { tipo = 'venceu', nome = 'placa_final', x = 6368, y = 327, w = 0, h = 32, coletado = false, ativo = true },
+        { tipo = 'venceu', nome = 'placa_final', x = 6368, y = 331, w = 0, h = 32, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_escudo', x = 1048, y = 284, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_cont', x = 2665, y = 348, w = 16, h = 16, coletado = false, ativo = true },
         { tipo = 'monitores', nome = 'monitor_vida', x = 2630, y = 348, w = 16, h = 16, coletado = false, ativo = true },
@@ -381,8 +383,12 @@ local Terreno = {
         { tipo = 'crab-ghz', x = 3611.5, y = 324.5, w = 23, h = 23, direcao = '' },
     },
     plataformas_flutuantes = {
-        { x = 5488, y = 304, largura = 32, altura = 16, x_inicial = 5488, amplitude = 64, velocidade = 1.0, direcao = 1 },
-        { x = 4208, y = 304, largura = 32, altura = 16, x_inicial = 4208, amplitude = 64, velocidade = 1.0, direcao = 1 },
+        { x = 5488, y = 304, largura = 32, altura = 16, x_inicial = 5488, y_inicial = 304, amplitude = 64, velocidade = 1.0, direcao = 1, modo = 'horizontal' },
+        { x = 4208, y = 304, largura = 32, altura = 16, x_inicial = 4208, y_inicial = 304, amplitude = 64, velocidade = 1.0, direcao = 1, modo = 'horizontal' },
+    },
+    pontes = {
+    },
+    balancas = {
     },
     plataformas_chefe = {
     },

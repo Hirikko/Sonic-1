@@ -1,4 +1,5 @@
 local Sonic = {
+    heroi = "sonic",
     x = 100,
     y = 240,
     spawn_x = 100,

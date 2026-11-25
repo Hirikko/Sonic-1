@@ -17,11 +17,11 @@ local COLISAO_BASE_Y   = 28
 local COLISAO_OFFSET_X = -3
 
 local ACELERACAO               = 0.050
-local VELOCIDADE_MAXIMA        = 6.0
+local VELOCIDADE_MAXIMA        = 4.0
 local DESACELERACAO            = 0.08
 local ACELERACAO_AR            = 0.12
 local DESACELERACAO_AR         = 0.06
-local VELOCIDADE_MAXIMA_AR     = 6.0
+local VELOCIDADE_MAXIMA_AR     = 4.0
 local DESACELERACAO_CONTRARIA  = 0.7
 local VELOCIDADE_TENSAO        = 0.5
 local FORCA_GRAVIDADE_RAMPA    = 0.25
@@ -32,6 +32,13 @@ local LIMIAR_MOLA              = 4.5
 local FORCA_MOLA_BASE          = -10
 local FATOR_VELOCIDADE_MOLA    = 1.2
 local FORCA_MOLA_MAX           = -19
+-- colisao_joga: rampa de lancamento. Arco, nao tiro vertical.
+local JOGA_VY_BASE   = -6     -- componente vertical base
+local JOGA_VY_FATOR  = -1.9  -- ganho vertical por px/frame de velocidade
+local JOGA_VY_TETO   = -15
+local JOGA_VX_FATOR  = 0.75   -- ganho horizontal
+local JOGA_VX_TETO   = 8
+local LIMITE_AR_JOGA = 9   -- teto de vx durante o voo da rampa
 local FRICCAO_ROLAR            = 0.995
 local FRICCAO_ROLAR_PLANO      = 0.06
 local VELOCIDADE_MINIMA_ROLAR  = 0.2
@@ -39,6 +46,9 @@ local PASSO_MAXIMO             = 4
 local MARGEM_SEGURANCA_RAMPA   = 16
 local TEMPO_INVENCIVEL         = 140
 local TEMPO_PISCA              = 6
+-- Pop da morte por queda: mais alto que o -8 da morte comum, para
+-- chegar acima do meio da tela antes de cair de volta.
+local FORCA_MORTE_QUEDA = -9.5
 
 -- QUIQUE (ajustável) --------------------------------------------------
 -- FORCA_BOUNCE .. FORCA_BOUNCE_MAX = faixa do quique em px/frame.
@@ -66,7 +76,11 @@ local function aproximar_zero(valor, quantidade)
     return 0
 end
 
-local function get_buffs() return State.buffs or BUFFS_PADRAO end
+-- Buffs do PROPRIO player. O fallback em State.buffs cobre qualquer
+-- chamada antiga que ainda passe nil.
+local function get_buffs(player)
+    return (player and player.buffs) or State.buffs or BUFFS_PADRAO
+end
 
 local function atualizar_horizontal(player, input, mapa)
     local esquerda = input.is_action("left", 0)
@@ -109,6 +123,7 @@ local function atualizar_horizontal(player, input, mapa)
         -- senão o teto normal (6) corta o alcance horizontal da espiral
         local teto_ar = VELOCIDADE_MAXIMA_AR
         if player.em_mola_esp then teto_ar = LIMITE_AR_ESP end
+        if player.em_joga then teto_ar = LIMITE_AR_JOGA end
         player.velocidade_x = math.max(-teto_ar, math.min(player.velocidade_x, teto_ar))
         return
     end
@@ -249,6 +264,43 @@ local function atualizar_vertical(player, input, pode_pular, mapa, pendulos, obj
         end
     end
 
+    -- Tabuas de ponte: x pela HITBOX (12px), nao pelo sprite. O teste
+    -- folgado das plataformas deixaria o Sonic apoiado no ar ao lado
+    -- de uma tabua de 16px.
+    if objetos and objetos.pontes and player.velocidade_y >= 0 then
+        local hx0, _, hx1 = PlayerSystem.get_hitbox(player)
+        for _, tb in ipairs(objetos.pontes) do
+            if tb.estado == "intacta" or tb.estado == "pisada" or tb.estado == "caindo" then
+                if hx1 > tb.x and hx0 < tb.x + tb.largura
+                and pes_anterior <= tb.y and pes_atual >= tb.y then
+                    player.y = tb.y - ALTURA_PLAYER
+                    player.velocidade_y = 0
+                    player.no_chao = true
+                    player.pulou_mola = false
+                    player.plataforma_atual = tb
+                    return
+                end
+            end
+        end
+    end
+
+    -- Balancas: grava o impacto para a catapulta calcular a forca.
+    if objetos and objetos.balancas_lados and player.velocidade_y >= 0 then
+        local hx0, _, hx1 = PlayerSystem.get_hitbox(player)
+        for _, s in ipairs(objetos.balancas_lados) do
+            if hx1 > s.x and hx0 < s.x + s.largura
+            and pes_anterior <= s.y and pes_atual >= s.y then
+                player.y = s.y - ALTURA_PLAYER
+                s.impacto = player.vy_impacto or 0
+                player.velocidade_y = 0
+                player.no_chao = true
+                player.pulou_mola = false
+                player.plataforma_atual = s
+                return
+            end
+        end
+    end
+
     if player.velocidade_y >= 0 and pendulos then
         for _, p in ipairs(pendulos) do
             if math.abs(player.x - p.x_plataforma) <= 16 then
@@ -303,15 +355,27 @@ local function atualizar_estado_parado(player, input)
 end
 
 local function atualizar_colisao_horizontal(player, mapa)
+    -- Cutscene de fim de ato (placa_final E capsula): o Sonic corre para
+    -- fora da tela. Precisa ignorar os DOIS bloqueios — o limitar_x do
+    -- mapa e o bateu_parede do terreno — senao ele fica preso na parede
+    -- do final da fase. O snap de rampa continua ativo.
+    local cutscene = State.cela_cutscene == true
     local velocidade_x = player.velocidade_x
     local passos = math.max(1, math.ceil(math.abs(velocidade_x) / PASSO_MAXIMO))
     local passo_x = velocidade_x / passos
     for _ = 1, passos do
         local x_anterior = player.x
-        local x_novo = mapa.limitar_x(player.x + passo_x)
+        local x_novo = player.x + passo_x
         local pes_y = player.y + ALTURA_PLAYER
         local suporte, bateu_parede
-        x_novo, suporte, bateu_parede = mapa.movimento_horizontal(x_anterior, x_novo, pes_y, ALTURA_COLISAO)
+        if cutscene then
+            x_novo = x_anterior + passo_x
+            suporte = mapa.altura_suporte(x_novo, pes_y, MARGEM_SEGURANCA_RAMPA)
+            bateu_parede = false
+        else
+            x_novo = mapa.limitar_x(x_novo)
+            x_novo, suporte, bateu_parede = mapa.movimento_horizontal(x_anterior, x_novo, pes_y, ALTURA_COLISAO)
+        end
         if bateu_parede then
             player.x = x_novo
             player.velocidade_x = 0
@@ -417,48 +481,81 @@ local function verificar_mola_esp(player, mapa)
     return false
 end
 
+-- O parser grava forca = 0 quando o objeto nao tem a propriedade no Tiled.
+-- Em Lua 0 e verdadeiro, entao "m.forca or 13.5" devolveria 0 e a mola
+-- lancaria com forca ZERO. Precisa do teste > 0, como na mola_esp.
+local function forca_mola(m, padrao)
+    local f = m.forca
+    if f and f > 0 then return f end
+    return padrao
+end
+
 local function verificar_mola(player, mapa)
-    if player.pulou_mola then return false end
-    local p_x, p_y = player.x + 4, player.y + 4
-    local p_w, p_h = 8, 24
+if player.pulou_mola then return false end
+    -- Caixa pela HITBOX, nao por player.x+4: aquele offset jogava a
+    -- janela 8px para a direita do centro do sprite, e uma mola de 10px
+    -- so pegava 1px quando o Sonic estava visualmente em cima dela.
+    local p_x, p_y, p_x1, p_y1 = PlayerSystem.get_hitbox(player)
+    local p_w, p_h = p_x1 - p_x, p_y1 - p_y
     for _, m in ipairs(mapa.get_molas()) do
         if m.classe ~= "mola_esp"
-        and p_x < m.x + m.largura and p_x + p_w > m.x and p_y < m.y + m.altura and p_y + p_h > m.y then
+            and p_x < m.x + m.largura and p_x + p_w > m.x
+            and p_y < m.y + m.altura and p_y + p_h > m.y then
             local tipo = m.tipo or ""
-            if string.find(tipo, "cima") or string.find(tipo, "up") then
-                player.velocidade_x = 0
-                player.velocidade_y = -(m.forca or 13.5)
-                player.vulneravel_mola_cima = true
-                player.vulneravel_mola_cima_timer = 300
-            elseif string.find(tipo, "dir") or string.find(tipo, "right") then
-                player.velocidade_x = (m.forca or 12.0)
-                player.velocidade_y = -2.0
-            elseif string.find(tipo, "baixo") or string.find(tipo, "down") then
-                player.velocidade_x = 0
-                player.velocidade_y = (m.forca or 10.0)
-            else
-                player.velocidade_x = -(m.forca or 12.0)
-                player.velocidade_y = -2.0
+            local eh_cima = (string.find(tipo, "cima") or string.find(tipo, "up")) and true or false
+
+            -- Mola vertical so dispara com o Sonic CAINDO sobre ela.
+            -- Andando no chao (no_chao) ou subindo (vy <= 0) nao lanca.
+            -- As outras direcoes continuam disparando por toque.
+            local libera = true
+            if eh_cima then
+                local caindo_agora = (not player.no_chao) and player.velocidade_y > 0
+                -- Frame seguinte ao pouso: velocidade_y já virou 0 e
+                -- no_chao virou true, mas vy_impacto ainda guarda a
+                -- velocidade da queda. Sem isto, quedas rápidas pulavam
+                -- a faixa de 6px acima do chão e a mola nunca disparava.
+                -- Andando no chão vy_impacto é só 0.32 (gravidade de 1
+                -- frame), então continua NÃO lançando ao andar.
+                local acabou_de_pousar = player.no_chao and (player.vy_impacto or 0) > 1.0
+                libera = caindo_agora or acabou_de_pousar
             end
-            player.rodando      = true
-            player.no_chao      = false
-            player.pulou_mola   = true
-            player.esta_pulando = false   -- mola não é pulo em forma de bola
-            if player.vulneravel_mola_cima then
-                if player.no_chao then
-                    player.vulneravel_mola_cima = false
-                    player.vulneravel_mola_cima_timer = nil
-                    player.pulou_mola = false
-                elseif player.vulneravel_mola_cima_timer then
-                    player.vulneravel_mola_cima_timer = player.vulneravel_mola_cima_timer - 1
-                    if player.vulneravel_mola_cima_timer <= 0 then
+
+            if libera then
+                if eh_cima then
+                    player.velocidade_x = 0
+                    player.velocidade_y = -forca_mola(m, 13.5)
+                    player.vulneravel_mola_cima = true
+                    player.vulneravel_mola_cima_timer = 300
+                elseif string.find(tipo, "dir") or string.find(tipo, "right") then
+                    player.velocidade_x = forca_mola(m, 12.0)
+                    player.velocidade_y = -2.0
+                elseif string.find(tipo, "baixo") or string.find(tipo, "down") then
+                    player.velocidade_x = 0
+                    player.velocidade_y = forca_mola(m, 10.0)
+                else
+                    player.velocidade_x = -forca_mola(m, 12.0)
+                    player.velocidade_y = -2.0
+                end
+                player.rodando      = true
+                player.no_chao      = false
+                player.pulou_mola   = true
+                player.esta_pulando = false
+                if player.vulneravel_mola_cima then
+                    if player.no_chao then
                         player.vulneravel_mola_cima = false
                         player.vulneravel_mola_cima_timer = nil
                         player.pulou_mola = false
+                    elseif player.vulneravel_mola_cima_timer then
+                        player.vulneravel_mola_cima_timer = player.vulneravel_mola_cima_timer - 1
+                        if player.vulneravel_mola_cima_timer <= 0 then
+                            player.vulneravel_mola_cima = false
+                            player.vulneravel_mola_cima_timer = nil
+                            player.pulou_mola = false
+                        end
                     end
                 end
+                return true
             end
-            return true
         end
     end
     return false
@@ -475,13 +572,19 @@ local function verificar_gatilho(player, mapa, old_x, old_y)
     local width  = max_x - min_x
     local height = max_y - min_y
     if mapa.colide_joga(min_x, min_y, width, height) then
-        local forca = FORCA_MOLA_BASE - (vel_abs * FATOR_VELOCIDADE_MOLA)
-        if forca < FORCA_MOLA_MAX then forca = FORCA_MOLA_MAX end
-        player.velocidade_y = forca
+        -- Escala com a velocidade, mas reparte em arco: menos vertical,
+        -- mais horizontal. A gravidade normal fecha o arco.
+        local vy = JOGA_VY_BASE + vel_abs * JOGA_VY_FATOR
+        if vy < JOGA_VY_TETO then vy = JOGA_VY_TETO end
+        local sinal = (player.velocidade_x >= 0) and 1 or -1
+        local vx = math.min(JOGA_VX_TETO, vel_abs * JOGA_VX_FATOR)
+        player.velocidade_y = vy
+        player.velocidade_x = sinal * vx
         player.no_chao      = false
         player.rodando      = false
         player.pulou_mola   = true
         player.esta_pulando = false
+        player.em_joga      = true
     end
 end
 
@@ -594,7 +697,7 @@ function PlayerSystem.resolver_monitores(player, objetos)
                 elseif PlayerSystem.acertar_alvo(player, my0, 8) then
                     o.coletado = true
                     local Objetos = require("sistemas.objetos")
-                    Objetos._aplicar_monitor(o.nome, State, mx0 + MON_W / 2, my0 + MON_H / 2)
+                    Objetos._aplicar_monitor(o.nome, State, mx0 + MON_W / 2, my0 + MON_H / 2, player)
                     -- o quique moveu o Sonic: recalcula para os próximos
                     px0, py0, px1, py1 = PlayerSystem.get_hitbox(player)
                 else
@@ -628,8 +731,9 @@ function PlayerSystem.aplicar_dano(player)
     if buffs and buffs.invencivel and buffs.invencivel > 0 then return end
     if (player.timer_invencivel or 0) > 0 then return end
 
-    if State.buffs and State.buffs.escudo then
-        State.buffs.escudo = false
+    local meus = get_buffs(player)
+    if meus and meus.escudo then
+        meus.escudo = false
         player.timer_invencivel = TEMPO_INVENCIVEL
         player.em_dano = true
         player.velocidade_y = -5
@@ -702,26 +806,45 @@ function PlayerSystem.update(player, input, mapa, pode_pular, pendulos, objetos)
     if player.morto then
         player.bola_no_frame = false
         player.esta_pulando  = false
+        -- Coop: morto esperando respawn fica congelado, sem fisica.
+        if player.coop_esperando then
+            Animacao.atualizar(player)
+            return
+        end
         player.timer_morte = player.timer_morte + 1
-        player.velocidade_y = player.velocidade_y + GRAVIDADE
-        player.y = player.y + player.velocidade_y
+        if player.morte_queda then
+            player.morte_vy = (player.morte_vy or 0) + GRAVIDADE
+            player.morte_dy = (player.morte_dy or 0) + player.morte_vy
+        else
+            player.velocidade_y = player.velocidade_y + GRAVIDADE
+            player.y = player.y + player.velocidade_y
+        end
         player.em_queda = false
         if player.timer_morte > 60 then
-            State.vidas = State.vidas - 1
+            player.morte_queda = false
+            player.morte_dy = 0
             player.em_queda = false
+            -- COOP: custo no pool compartilhado, mas NAO reseta a fase
+            -- nem vai para game over aqui. Quem decide e o Coop.atualizar
+            -- (reset so com todos mortos; game over so com vidas 0).
+            local Coop = require("sistemas.coop")
+            if Coop.ativo then
+                Coop.ao_morrer(player, State)
+                Animacao.atualizar(player)
+                return
+            end
+            State.vidas = State.vidas - 1
             if State.vidas <= 0 then
-                if State.continuacoes and State.continuacoes > 0 then
-                    State.continuacoes = State.continuacoes - 1
-                    State.vidas = 3
-                    State.resetar_estado_fase()
-                    State.proxima_cena = State.SCREEN_GAME
-                    local Transicao = require("sistemas.transicao")
-                    if not Transicao.ativa then Transicao.iniciar() end
-                else
-                    State.proxima_cena = State.SCREEN_GAME_OVER
-                    local Transicao = require("sistemas.transicao")
-                    if not Transicao.ativa then Transicao.iniciar() end
-                end
+                -- SEMPRE vai para a tela de fim de jogo. Quem consome o
+                -- continue e o handler de SCREEN_GAME_OVER no state.lua,
+                -- depois do jogador apertar confirmar.
+                -- O checkpoint e limpo aqui: da tela de game over só se
+                -- sai continuando (deve limpar) ou indo pro titulo (idem).
+                local Objetos = require("sistemas.objetos")
+                if Objetos.limpar_checkpoint then Objetos.limpar_checkpoint() end
+                State.proxima_cena = State.SCREEN_GAME_OVER
+                local Transicao = require("sistemas.transicao")
+                if not Transicao.ativa then Transicao.iniciar() end
                 player.morto = false
                 player.timer_morte = 0
                 player.velocidade_x = 0
@@ -740,14 +863,49 @@ function PlayerSystem.update(player, input, mapa, pode_pular, pendulos, objetos)
         return
     end
 
-    if player.y > mapa.altura + 100 then
+    -- Cutscene de fim de ato: ao sair da tela o Sonic DEIXA DE EXISTIR.
+    -- Sem isto, em fases curtas (gh3, bz2) ele passava da borda do mapa,
+    -- caia no vazio e morria/resetava a fase antes da vitoria chegar.
+    -- require preguiçoso: camera.lua so exige state/terreno dentro das
+    -- funções, então não há ciclo de carregamento.
+    if State.cela_cutscene then
+        if player.saiu_da_tela then
+            player.velocidade_x = 0
+            player.velocidade_y = 0
+            return
+        end
+        local Camera = require("sistemas.camera")
+        local cam_x, cam_y = Camera.get_xy()
+        local sx, sy = player.x - cam_x, player.y - cam_y
+        if sx > Camera.largura_tela + 32 or sx < -32
+        or sy > Camera.altura_tela + 32 or sy < -32 then
+            player.saiu_da_tela = true
+            player.velocidade_x = 0
+            player.velocidade_y = 0
+            return
+        end
+    end
+
+    if player.y > mapa.altura + 100 and not State.cela_cutscene then
         player.morto = true
         player.timer_morte = 0
-        player.velocidade_y = -5
+        -- Mesma morte comum: pop para cima e gravidade traz de volta.
+        -- Só reposiciona para a faixa visível (a câmera limita y a
+        -- mapa.altura - 270), senão o pop acontecia abaixo da tela.
+        -- A câmera segue player.y. Subir o player.y no pop fazia a
+        -- câmera subir junto e ele parecia parado lá embaixo. Agora o
+        -- pop anima um OFFSET de desenho, com player.y fixo.
+        player.y = mapa.altura - 32
+        player.velocidade_x = 0
+        player.velocidade_y = 0
+        player.morte_queda = true
+        player.morte_dy = 0
+        player.morte_vy = -9.5
         player.pulou_mola = false
         player.pendulo_atual = nil
         player.esta_pulando = false
         player.bola_no_frame = false
+        Animacao.iniciar(player, "morre", 60)
     end
 
     if player.timer_invencivel and player.timer_invencivel > 0 then
@@ -777,9 +935,23 @@ function PlayerSystem.update(player, input, mapa, pode_pular, pendulos, objetos)
 
     if player.no_chao and player.plataforma_atual then
         local pl = player.plataforma_atual
-        if player.x + 16 > pl.x - 4 and player.x < pl.x + pl.largura + 4 then
+        local dentro_x
+        if pl.eh_tabua or pl.eh_balanca then
+            local hx0, _, hx1 = PlayerSystem.get_hitbox(player)
+            dentro_x = hx1 > pl.x and hx0 < pl.x + pl.largura
+        else
+            dentro_x = player.x + 16 > pl.x - 4 and player.x < pl.x + pl.largura + 4
+        end
+        if dentro_x then
             player.x = player.x + pl.delta_x
-            if math.abs((player.y + 32) - pl.y) < 8 then
+            if pl.eh_tabua and pl.estado == "caindo" then
+                -- Tabua em queda: segue o delta_y sem limite. O teste < 8
+                -- abaixo soltaria o Sonic quando a tabua passasse de
+                -- 8px/frame (ela chega a PONTE_VY_MAX = 10).
+                player.y = player.y + (pl.delta_y or 0)
+                player.velocidade_y = 0
+                player.no_chao = true
+            elseif math.abs((player.y + 32) - pl.y) < 8 then
                 player.y = pl.y - 32
                 player.velocidade_y = 0
                 player.no_chao = true
@@ -812,6 +984,7 @@ function PlayerSystem.update(player, input, mapa, pode_pular, pendulos, objetos)
     if player.no_chao then
         player.esta_pulando = false
         player.em_mola_esp  = false
+        player.em_joga      = false
     end
 
     if player.em_queda and player.no_chao then
@@ -833,8 +1006,19 @@ end
 
 function PlayerSystem.draw(player, cam_x, cam_y)
     if player.invisivel_visual then return end
+    if player.saiu_da_tela then return end
+    if player.coop_esperando then return end
     local screen_x = math.floor(player.x - cam_x)
-    local screen_y = math.floor(player.y - cam_y)
+    local screen_y = math.floor(player.y + (player.morte_dy or 0) - cam_y)
+    -- Totalmente fora da tela: nao desenha. Na cutscene de fim de ato o
+    -- Sonic atravessa a parede e sai; sem isto ele continuaria sendo
+    -- desenhado (e as estrelas/escudo junto) fora do quadro.
+    -- Margens folgadas para nao cortar sprite alto (pula_mola = 40px)
+    -- nem as estrelas de invencibilidade (raio 16).
+    if screen_x < -40 or screen_x > 520
+    or screen_y < -48 or screen_y > 300 then
+        return
+    end
     local sprite = Animacao.sprite_atual(player)
     if sprite then
         local draw_y = screen_y
@@ -862,7 +1046,7 @@ function PlayerSystem.draw(player, cam_x, cam_y)
         end
     end
 
-    if State.buffs and State.buffs.escudo then
+    if buffs and buffs.escudo then
         if player.escudo_timer == nil then player.escudo_timer = 0 end
         local frame_escudo = 9
         if player.escudo_timer < 8 then
@@ -874,7 +1058,7 @@ function PlayerSystem.draw(player, cam_x, cam_y)
             deve_desenhar = false
         end
         if deve_desenhar then
-            local sprite_escudo = Sprites.sprite("escudo_ativado", frame_escudo)
+            local sprite_escudo = Sprites.sprite("escudo_ativado", frame_escudo, player.heroi)
             if sprite_escudo then
                 local cx = screen_x - 6
                 local cy = screen_y + 16
@@ -914,8 +1098,8 @@ end
 
 function PlayerSystem.atualizar_oxigenio(player, mapa)
     if not player or player.morto then return end
-    if not State.oxigenio then
-        State.oxigenio = {
+    if not player.oxigenio then
+        player.oxigenio = {
             tempo_maximo = 20 * 60,
             tempo_restante = 0,
             na_agua = false,
@@ -923,7 +1107,7 @@ function PlayerSystem.atualizar_oxigenio(player, mapa)
             timer_morte = 0,
         }
     end
-    local oxi = State.oxigenio
+    local oxi = player.oxigenio
     local areas = mapa.get_areas_agua and mapa.get_areas_agua() or {}
 
     -- O que conta é a CABEÇA, não o corpo: no original o Sonic respira
@@ -944,20 +1128,6 @@ function PlayerSystem.atualizar_oxigenio(player, mapa)
             end
         end
     end
-
-    -- ===== DIAGNÓSTICO TEMPORÁRIO (pode apagar este if inteiro) =====
-    if na_agua_agora ~= oxi.na_agua then
-        local function diag(m)
-            if ui and ui.log then ui.log(m) else print(m) end
-        end
-        diag(string.format("[AGUA] virou %s | sonic.y=%.1f cabeca=%.1f pes=%.1f x=%.1f",
-            tostring(na_agua_agora), player.y, cabeca_y, player.y + 32, player.x))
-        for i, a in ipairs(areas) do
-            diag(string.format("[AGUA]   area%d  x=%.1f..%.1f  y=%.1f..%.1f",
-                i, a.x, a.x + a.w, a.y, a.y + a.h))
-        end
-    end
-    -- ===== fim do diagnóstico =====
 
     if na_agua_agora and not oxi.na_agua then
         oxi.na_agua = true

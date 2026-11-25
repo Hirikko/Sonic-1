@@ -1,5 +1,4 @@
-{ "backgroundcolor":"#00adff",
- "compressionlevel":-1,
+{ "compressionlevel":-1,
  "editorsettings":
     {
      "export":
@@ -2882,7 +2881,7 @@
                  "visible":true,
                  "width":0,
                  "x":6304,
-                 "y":266
+                 "y":270
                 }, 
                 {
                  "height":16,

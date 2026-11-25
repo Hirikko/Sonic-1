@@ -45,9 +45,23 @@ local tilesets_por_camada = { fundo = {}, chao = {}, objetos = {}, deco = {}, ag
 -- sem precisar de reconstrução.
 -- ============================================================
 local ANIM_TILESETS = {
+    -- gh_tile_f1   = { "gh_tile_f1", "gh_tile_f2", "gh_tile_f3" },
     bd_tile_f1_1 = { "bd_tile_f1_1", "bd_tile_f2_1", "bd_tile_f3_1" },
     bd_tile_f1_2 = { "bd_tile_f1_2", "bd_tile_f2_2", "bd_tile_f3_2" },
+
+    --[[ PROXIMAS ZONAS — descomentar quando o mapa usar esses tilesets.
+    A CHAVE e o nome do tileset no Tiled; confira no .lua gerado
+    (local _tilesets = { ["nome"] = "nome" }) antes de ligar.
+
+    jz_tile_f1   = { "jz_tile_f1", "jz_tile_f2", "jz_tile_f3" },
+    lz_tile_f1   = { "lz_tile_f1", "lz_tile_f2", "lz_tile_f3", "lz_tile_f4" },
+    sb_tile_f1   = { "sb_tile_f1", "sb_tile_f2", "sb_tile_f3", "sb_tile_f4" },
+    sbz_tile_f1  = { "sbz_tile_f1", "sbz_tile_f2", "sbz_tile_f3", "sbz_tile_f4",
+    "sbz_tile_f5", "sbz_tile_f6", "sbz_tile_f7", "sbz_tile_f8" },
+    sbz3_tile_f1 = { "sbz3_tile_f1", "sbz3_tile_f2", "sbz3_tile_f3", "sbz3_tile_f4" },
+    ]]--
 }
+
 local ANIM_CADENCIA = 8      -- 60/8 = 7,5 fps por frame de tile
 local anim_timer  = 0
 local anim_frame  = 1
@@ -66,7 +80,6 @@ local function preparar_animacao()
         end
     end
     if #lista > 0 then anim_ativos = lista end
-    if ui and ui.log then ui.log("[ANIM] ativos = " .. tostring(anim_ativos and #anim_ativos or 0)) end
 end
 
 local function atualizar_animacao()
@@ -204,14 +217,20 @@ function Mapa.get_tilesets()
     return Gh_Atual and Gh_Atual.tilesets or {}
 end
 
-local function desenhar_camada(nome, cam_x, cam_y)
+-- vw/vh opcionais: janela de desenho. Sem eles, tela cheia (480x270).
+-- O preview de brilho e o futuro split-screen passam a janela real,
+-- senao cada vista emite chunks para 4x a area visivel e o drawlist
+-- estoura (teto de 18432 bytes).
+local function desenhar_camada(nome, cam_x, cam_y, vw, vh)
     local tilesets = tilesets_por_camada[nome]
     if not tilesets or #tilesets == 0 or not Gh_Atual then return end
+    vw = vw or 480
+    vh = vh or 270
 
     local start_col = math.floor(-cam_x / TILE_SIZE)
-    local end_col = math.ceil((-cam_x + 480) / TILE_SIZE)
+    local end_col = math.ceil((-cam_x + vw) / TILE_SIZE)
     local start_row = math.floor(-cam_y / TILE_SIZE)
-    local end_row = math.ceil((-cam_y + 270) / TILE_SIZE)
+    local end_row = math.ceil((-cam_y + vh) / TILE_SIZE)
 
     local start_cx = math.max(0, math.floor(start_col / CHUNK_W))
     local end_cx = math.min(math.ceil(MAP_WIDTH / CHUNK_W) - 1, math.floor(end_col / CHUNK_W))
@@ -240,16 +259,16 @@ end
 function Mapa.get_areas_agua() return Terreno.get_areas_agua() end
 
 -- Fundo com parallax: usa a configuração ativa (lida do terreno ou padrão)
-function Mapa.draw_fundo(cam_x, cam_y)
-    local fx = cam_x * parallax_cfg.x + parallax_cfg.offset_x
-    local fy = cam_y * parallax_cfg.y + parallax_cfg.offset_y
-    desenhar_camada("fundo", fx, fy)
+function Mapa.draw_fundo(cam_x, cam_y, vw, vh)
+local fx = cam_x * parallax_cfg.x + parallax_cfg.offset_x
+local fy = cam_y * parallax_cfg.y + parallax_cfg.offset_y
+desenhar_camada("fundo", fx, fy, vw, vh)
 end
 
-function Mapa.draw_chao(cam_x, cam_y) desenhar_camada("chao", cam_x, cam_y) end
-function Mapa.draw_objetos(cam_x, cam_y) desenhar_camada("objetos", cam_x, cam_y) end
-function Mapa.draw_agua(cam_x, cam_y) desenhar_camada("agua", cam_x, cam_y) end
-function Mapa.draw_deco(cam_x, cam_y) desenhar_camada("deco", cam_x, cam_y) end
+function Mapa.draw_chao(cam_x, cam_y, vw, vh) desenhar_camada("chao", cam_x, cam_y, vw, vh) end
+function Mapa.draw_objetos(cam_x, cam_y, vw, vh) desenhar_camada("objetos", cam_x, cam_y, vw, vh) end
+function Mapa.draw_agua(cam_x, cam_y, vw, vh) desenhar_camada("agua", cam_x, cam_y, vw, vh) end
+function Mapa.draw_deco(cam_x, cam_y, vw, vh) desenhar_camada("deco", cam_x, cam_y, vw, vh) end
 
 function Mapa.altura_chao(x) return Terreno.altura(x) end
 function Mapa.altura_suporte(x, y, margem) return Terreno.altura_suporte(x, y, margem) end

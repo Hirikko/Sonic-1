@@ -10,16 +10,34 @@ State.SCREEN_GAME = 3
 State.SCREEN_VICTORY = 4
 State.SCREEN_GAME_OVER = 5
 State.SCREEN_STAGE_SELECT = 6
+State.SCREEN_MENUS = 7
+State.volume_master = 1.0
+-- COOP: 1 = single player (comportamento atual), 2 ou 3 = coop.
+State.coop_num_players = 1
+State.modo = "historia"   -- historia | coop | rei_aneis | velocista | agilidade | sobrevivente | perseguicao
+State.coop_herois = { "sonic", "tails", "knux", "amy", "knux", "rouge" }
+State.players = nil
+-- Pause global (L1+R1): congela o jogo e abre as opcoes por cima.
+State.pausado_opcoes = false
+State.pausa_bloqueio = false
 
 State.stages = {
-    { id = "greenhill", nome = "GREEN HILL", atos = 3, sigla = "gh",  historia = true },
-    -- atos = 1 enquanto só bz1 existir; subir para 3 quando bz2/bz3 chegarem.
-    { id = "bridgezone", nome = "BRIDGE", atos = 1, sigla = "bz", historia = true },
     { id = "greenhill", nome = "PESQUISA",   atos = 1, sigla = "tst", historia = false },
-    { id = "specialzone", nome = "SALA ESPECIAL", atos = 1, sigla = "sp", historia = false, especial = true },
+        -- SP: subir atos para 8 quando sp2..sp8 estiverem gerados
+    { id = "specialzone", nome = "SALA ESPECIAL", atos = 2, sigla = "sp", historia = false, especial = true },
+    { id = "greenhill", nome = "GREEN HILL", atos = 3, sigla = "gh",  historia = true },
+        -- atos = 1 enquanto só bz1 existir; subir para 3 quando bz2/bz3 chegarem.
+    { id = "bridgezone", nome = "BRIDGE", atos = 2, sigla = "bz", historia = true },
+    --[[ PROXIMAS ZONAS — descomentar quando os .lua + _terreno.lua existirem.
+    O caminho vem de id + sigla + ato: fases.junglezone.jz1, etc.
+    { id = "junglezone",    nome = "JUNGLE",      atos = 3, sigla = "jz",  historia = true },
+    { id = "labyrinthzone", nome = "LABYRINTH",   atos = 3, sigla = "lz",  historia = true },
+    { id = "scrapbrain",    nome = "SCRAP BRAIN", atos = 3, sigla = "sb",  historia = true },
+    { id = "skybasezone",   nome = "SKY BASE",    atos = 3, sigla = "sbz", historia = true },
+    ]]--
 }
 State.SP_TEMPO = 60 * 60
-State.SP_ATOS_DISPONIVEIS = 1   -- subir para 6 quando sp2..sp6 existirem
+State.SP_ATOS_DISPONIVEIS = 2   -- subir para 6 quando sp2..sp6 existirem
 State.sp_indice = 1             -- qual sala especial será a próxima
 State.especial = nil
 State.sp_retorno = { stage = 1, ato = 0 }
@@ -29,7 +47,7 @@ return (s and s.especial) == true
 end
 -- Atos que terminam em chefe. Chave = sigla da zona, valor = ato.
 -- Ao criar BZ/JZ/LZ/SBZ, basta acrescentar a sigla aqui.
-local ATOS_CHEFE = { gh = 3 }
+local ATOS_CHEFE = { gh = 3, bz = 3, jz = 3, lz = 3, sb = 3, sbz = 3 }
 function State.fase_e_chefe()
 local s = State.stages[State.stage_atual]
 if not s then return false end
@@ -70,15 +88,36 @@ State.tempo_preview = 0
 State.selecao_confirmada = false
 State.timer_game_over = nil
 
-local function clonar_player()
+-- dados/<heroi>.lua; se ainda nao existir, cai no Sonic.
+local function carregar_dados_heroi(heroi)
+    if heroi and heroi ~= "sonic" then
+        local ok, d = pcall(require, "dados." .. heroi)
+        if ok and type(d) == "table" then return d end
+    end
+    return Sonic
+end
+
+local function clonar_player(heroi, pad)
+    local base = carregar_dados_heroi(heroi)
     local instancia = {}
-    for chave, valor in pairs(Sonic) do instancia[chave] = valor end
+    for chave, valor in pairs(base) do instancia[chave] = valor end
+    instancia.heroi = heroi or "sonic"
+    instancia.pad = pad or 0
     instancia.frame_anim = instancia.frame_anim or 1
     instancia.timer_anim = instancia.timer_anim or 0
     instancia.tempo_parado = instancia.tempo_parado or 0
     instancia.animacao_forcada = nil
     instancia.duracao_forcada = nil
     instancia.direcao_anterior = instancia.direcao or 1
+    instancia.coop_esperando = false
+    instancia.coop_timer = 0
+    -- oxigenio INDIVIDUAL (regra do coop)
+    instancia.oxigenio = {
+        tempo_maximo = 20 * 60, tempo_restante = 0,
+        na_agua = false, morrendo = false, timer_morte = 0,
+    }
+    -- buffs INDIVIDUAIS: escudo/invenc/velocidade sao de quem pegou
+    instancia.buffs = { invencivel = 0, velocidade_extra = 0, escudo = false }
     return instancia
 end
 
@@ -87,7 +126,6 @@ function State.resetar_estado_fase()
     local Camera = require("sistemas.camera")
     local dados_t = Terreno.get_dados()
     Camera.reset()
-    State.player = clonar_player()
     local spawn_x, spawn_y = Terreno.get_spawn()
 
     local altura_chao = Terreno.altura(spawn_x, spawn_y + 32)
@@ -95,14 +133,36 @@ function State.resetar_estado_fase()
         spawn_y = altura_chao - 32
     end
 
-    State.player.x = spawn_x
-    State.player.spawn_x = spawn_x
-    State.player.y = spawn_y
-    State.player.spawn_y = spawn_y
-    local altura = Terreno.altura(spawn_x, spawn_y + 32)
-    if not altura or altura > spawn_y + 32 + 16 then
-        State.player.y = spawn_y - 32
+    local n = State.coop_num_players or 1
+    State.players = {}
+    for i = 1, n do
+        local heroi = (State.coop_herois and State.coop_herois[i]) or "sonic"
+        local p = clonar_player(heroi, i - 1)
+        -- 24px de separacao para nao nascerem sobrepostos
+        local px = spawn_x + (i - 1) * 24
+        p.x, p.spawn_x = px, px
+        p.y, p.spawn_y = spawn_y, spawn_y
+        local altura = Terreno.altura(px, spawn_y + 32)
+        if not altura or altura > spawn_y + 32 + 16 then
+            p.y = spawn_y - 32
+            p.spawn_y = p.y
+        end
+        State.players[i] = p
     end
+    -- alias: objetos/chefe/ui/menus ainda leem State.player
+    State.player = State.players[1]
+    State.oxigenio = State.player.oxigenio
+
+    -- COOP: escudo/invenc/velocidade sao COMPARTILHADOS. Todos apontam
+    -- para a MESMA tabela, entao quem pega vale para o grupo. No modo
+    -- player-vs-player (futuro) cada um recebe a sua propria tabela.
+    -- Oxigenio continua individual.
+    local buffs_grupo = { invencivel = 0, velocidade_extra = 0, escudo = false }
+    for _, p in ipairs(State.players) do p.buffs = buffs_grupo end
+    State.buffs = buffs_grupo
+
+    local Coop = require("sistemas.coop")
+    Coop.init(State.players)
 
     local Timer = require("sistemas.timer")
     Timer.init()
@@ -114,6 +174,7 @@ function State.resetar_estado_fase()
     State.esmeralda_no_ato = false
     State.placa.ativa = false
     State.placa.resultado = "placa_normal"
+    State.placa.heroi = nil
     State.resultado = nil
     State.vitoria_anim = nil
     State.chefe_derrotado = false
@@ -122,15 +183,9 @@ function State.resetar_estado_fase()
     State.cela_cutscene = false
     State.cela_foco_x = nil
     State.cela_foco_y = nil
-    State.oxigenio = {
-        tempo_maximo = 20 * 60,
-        tempo_restante = 0,
-        na_agua = false,
-        aviso_tocado = false,
-        aviso_rapido_tocado = false,
-        morrendo = false,
-        timer_morte = 0,
-    }
+    -- State.oxigenio continua sendo o alias de player.oxigenio, criado
+    -- acima. Recriar a tabela aqui deixava a bolha de ar escrevendo
+    -- numa tabela orfa que ninguem le.
 
     local Inimigos = require("sistemas.inimigos")
     Inimigos.init(dados_t)
@@ -190,6 +245,16 @@ function State.update_loading()
         Mapa.preparar(State.caminho_mapa_pendente)
         State.loading_task = 5
     elseif State.loading_task == 5 then
+        -- O reset zera aneis/buffs e vitoria_anim. Se rodar durante o
+        -- fade-out, o update_vitoria_anim RECRIA o vitoria_anim com os
+        -- bonus cheios e os tres numeros voltam ao valor original na
+        -- frente do jogador. Espera a tela apagar: quando o progresso
+        -- chega a 1, o Transicao.update vira a direcao para -1.
+        -- As tarefas 1..4 seguem rodando durante o fade, entao o tempo
+        -- de tela preta NAO aumenta.
+        if Transicao.ativa and Transicao.direcao > 0 and Transicao.progresso < 1 then
+            return
+        end
         State.resetar_estado_fase()
         State.loading_task = nil
     end
@@ -197,7 +262,8 @@ end
 
 function State.init()
     State.inventory = { aneis = 0 }
-    State.vidas = 3
+    local Coop = require("sistemas.coop")
+    State.vidas = Coop.vidas_iniciais(State.coop_num_players)
     State.esmeraldas_coletadas = 0
     State.esmeralda_no_ato = false
     State.button_pressed = false
@@ -333,6 +399,8 @@ end
 
 local function avancar_tela(input)
     if Mapa.carregando or State.loading_task then return end
+    -- os menus tem navegacao propria (sistemas/menus.lua)
+    if State.current_scene == State.SCREEN_MENUS then return end
 
     if State.espera_soltar then
         if not input.is_action("confirm", 0) then
@@ -386,7 +454,9 @@ local function avancar_tela(input)
 
     if State.current_scene == State.SCREEN_TITLE then
         State.selecao_confirmada = false
-        ir_para(State.SCREEN_STAGE_SELECT)
+        local Menus = require("sistemas.menus")
+        Menus.reset()
+        ir_para(State.SCREEN_MENUS)
 
     elseif State.current_scene == State.SCREEN_GAME_OVER then
         if State.continuacoes > 0 then
@@ -411,6 +481,11 @@ local function avancar_tela(input)
                 anim.pontos = anim.pontos + restante
             end
         end
+
+        -- COOP: revive os mortos de graca. Se o pool zerou mas alguem
+        -- terminou vivo, o grupo volta com 1 vida.
+        local Coop = require("sistemas.coop")
+        Coop.ao_concluir_ato(State)
 
         -- sala especial (passou OU tempo esgotado): volta para a próxima fase
         if State.resultado == "especial_ok" or State.resultado == "especial_falhou" then
@@ -509,8 +584,38 @@ end
 function State.update(input)
     assert(input, "State.update requer input")
 
+    -- L1+R1 (BTN.F + BTN.G): pausa global. O bloqueio impede que o
+    -- combo fique alternando enquanto os dois estao segurados.
+    local BTN = require("btn")
+    -- Qualquer controle pode chamar o pause (P1, P2 ou P3).
+    local combo = false
+    for pad = 0, 2 do
+        if ui.btn(BTN.F, pad) ~= false and ui.btn(BTN.G, pad) ~= false then
+            combo = true
+            break
+        end
+    end
+    if combo and not State.pausa_bloqueio then
+        State.pausa_bloqueio = true
+        if State.current_scene == State.SCREEN_GAME then
+            State.pausado_opcoes = not State.pausado_opcoes
+            local Menus = require("sistemas.menus")
+            if State.pausado_opcoes then Menus.abrir_overlay() end
+        end
+    elseif not combo then
+        State.pausa_bloqueio = false
+    end
+
     State.update_loading()
     atualizar_botao(input)
+
+    -- Pausado: so os menus rodam. Nada de timer, buff, vitoria ou
+    -- troca de cena — o jogo fica congelado de verdade.
+    if State.pausado_opcoes then
+        local Menus = require("sistemas.menus")
+        Menus.update(input)
+        return
+    end
 
     if State.current_scene == State.SCREEN_GAME_OVER then
         if not State.timer_game_over then
@@ -530,6 +635,9 @@ function State.update(input)
         update_vitoria_anim(input)
     elseif State.current_scene == State.SCREEN_STAGE_PREVIEW then
         State.tempo_preview = State.tempo_preview + 1
+    elseif State.current_scene == State.SCREEN_MENUS then
+        local Menus = require("sistemas.menus")
+        Menus.update(input)
     end
 
     local vidas_por_pontos_atuais = math.floor(State.pontuacao / 50000)
@@ -538,8 +646,13 @@ function State.update(input)
         State.vidas_por_pontos = vidas_por_pontos_atuais
     end
 
-    if State.buffs.invencivel > 0 then State.buffs.invencivel = State.buffs.invencivel - 1 end
-    if State.buffs.velocidade_extra > 0 then State.buffs.velocidade_extra = State.buffs.velocidade_extra - 1 end
+    for _, p in ipairs(State.players or { State.player }) do
+        local b = p.buffs
+        if b then
+            if b.invencivel > 0 then b.invencivel = b.invencivel - 1 end
+            if b.velocidade_extra > 0 then b.velocidade_extra = b.velocidade_extra - 1 end
+        end
+    end
 
     if not Transicao.ativa then
         avancar_tela(input)

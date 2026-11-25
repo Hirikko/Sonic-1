@@ -1,6 +1,12 @@
 require("palette")
 require("sprites")
 
+LUPI_HARDWARE_CONSTRAINTS = true
+LUPI_LUA_WATCHDOG = true
+LUPI_HARDWARE_DEBUG_OVERLAY = false
+LUPI_HARDWARE_DEBUG_OVERLAY_RECT = { x0 = 0, y0 = 0, x1 = 164, y1 = 270, col = 2 }
+LUPI_HARDWARE_DEBUG_OVERLAY_ALPHA = 0.5
+
 local Palette   = _G.Palette
 local State     = require("state")
 local Audio     = require("sistemas.audio")
@@ -34,11 +40,28 @@ local INPUT_AUTO_DIREITA = {
     is_action_pressed = function() return false end,
 }
 
-LUPI_HARDWARE_CONSTRAINTS = true
-LUPI_LUA_WATCHDOG = true
-LUPI_HARDWARE_DEBUG_OVERLAY = true
-LUPI_HARDWARE_DEBUG_OVERLAY_RECT = { x0 = 0, y0 = 0, x1 = 164, y1 = 270, col = 2 }
-LUPI_HARDWARE_DEBUG_OVERLAY_ALPHA = 0.5
+-- Um wrapper de input por controle. Cacheado: sem alocacao por frame.
+-- O ui-adapter ja aceita o indice, entao nao precisa monkey-patch de
+-- ui.btn como o projeto de referencia fazia.
+local inputs_pad = {}
+local function input_do_pad(idx)
+    local c = inputs_pad[idx]
+    if not c then
+        c = {
+            is_action         = function(a) return Input.is_action(a, idx) end,
+            is_action_pressed = function(a) return Input.is_action_pressed(a, idx) end,
+        }
+        inputs_pad[idx] = c
+    end
+    return c
+end
+
+local function algum_vivo(lista)
+    for _, p in ipairs(lista) do
+        if not p.morto and not p.coop_esperando then return true end
+    end
+    return false
+end
 
 local function indice_cor(cor)
     if not Palette then return 0 end
@@ -65,17 +88,19 @@ function update(frame)
     State.update(Input)
     Audio.update(State)
 
-    if State.current_scene == State.SCREEN_GAME then
+    if State.current_scene == State.SCREEN_GAME and not State.pausado_opcoes then
+     local lista = State.players or { State.player }
+     local Coop  = require("sistemas.coop")
+     local vivo  = algum_vivo(lista)
      local fim_de_ato = State.placa.ativa or State.cela_cutscene
      local em_especial = State.stage_e_especial()
-     if not State.player.morto and not Timer.esgotado and not fim_de_ato then
+     if vivo and not Timer.esgotado and not fim_de_ato then
          Timer.update()
      end
-     -- SALA ESPECIAL: countdown próprio, independente do Timer da fase
      if em_especial then
          local esp = State.especial
          if esp and not esp.concluiu and not esp.falhou
-            and not State.player.morto and not State.placa.ativa then
+            and vivo and not State.placa.ativa then
              esp.tempo = esp.tempo - 1
              if esp.tempo <= 0 then
                  esp.tempo = 0
@@ -83,47 +108,73 @@ function update(frame)
              end
          end
      end
-     if not em_especial and Timer.esgotado and not State.player.morto and not fim_de_ato then
-            State.player.morto = true
-            State.player.timer_morte = 0
-            State.player.velocidade_y = -5
-        end
+     if not em_especial and Timer.esgotado and vivo and not fim_de_ato then
+         for _, p in ipairs(lista) do
+             if not p.morto and not p.coop_esperando then
+                 p.morto = true
+                 p.timer_morte = 0
+                 p.velocidade_y = -5
+             end
+         end
+     end
 
-        -- Cutscenes: chefe/entrada = sem controle; cela = corre para fora
-        local cut_chefe   = Chefe.em_cutscene()
-        local cut_cela    = Objetos.em_cutscene_cela()
-        local em_cutscene = cut_chefe or cut_cela
-        local input_sonic = Input
-        local pode_pular  = State.pode_pular()
-        if cut_chefe then
-            input_sonic = INPUT_NEUTRO
-            pode_pular  = false
-        elseif cut_cela then
-            input_sonic = INPUT_AUTO_DIREITA
-            pode_pular  = false
-        end
+     local cut_chefe   = Chefe.em_cutscene()
+     local cut_cela    = Objetos.em_cutscene_cela()
+     local em_cutscene = cut_chefe or cut_cela
+     local input_base  = Input
+     local pode_pular  = State.pode_pular()
+     if cut_chefe then
+         input_base = INPUT_NEUTRO
+         pode_pular = false
+     elseif cut_cela then
+         input_base = INPUT_AUTO_DIREITA
+         pode_pular = false
+     end
 
-        Objetos.update(State.player)
-        Inimigos.update(State.player)
-        Aneis.update(State.player)
-        Player.atualizar_oxigenio(State.player, Mapa)
-        Player.update(State.player, input_sonic, Mapa, pode_pular, Objetos.lista, Objetos)
-        -- Colisão com o Sonic DEPOIS da física: o pouso zera velocidade_y,
-        -- e era isso que fazia o Sonic tomar dano ao cair em cima do inimigo.
-        if not em_cutscene then
-            Inimigos.colisoes_player(State.player)
-        end
-        Objetos.resolver_cela(State.player)
-        -- Freada da cutscene de entrada: Sonic para na borda da arena
-        if cut_chefe then
-            State.player.velocidade_x = State.player.velocidade_x * 0.85
-        end
-        Chefe.update(State.player)
-        Camera.update_look(State.player, input_sonic)
+     -- Sistemas que ainda recebem UM player: usam o primeiro vivo.
+     local ref = lista[1]
+     for _, p in ipairs(lista) do
+         if not p.morto and not p.coop_esperando then ref = p; break end
+     end
+
+     Objetos.update(ref)
+     Inimigos.update(ref)
+     Aneis.update()          -- global: animacao + fisica, uma vez
+
+     for _, p in ipairs(lista) do
+         local inp = (input_base == Input) and input_do_pad(p.pad or 0) or input_base
+         Aneis.coleta(p)     -- por player: cada um pega os seus
+         Player.atualizar_oxigenio(p, Mapa)
+         Player.update(p, inp, Mapa, pode_pular, Objetos.lista, Objetos)
+         if not em_cutscene then Inimigos.colisoes_player(p) end
+         Objetos.resolver_cela(p)
+         if cut_chefe then p.velocidade_x = p.velocidade_x * 0.85 end
+     end
+
+     Chefe.update(ref)
+     Camera.update_look(ref, input_base)
+
+     -- COOP: decide respawn / reset / game over
+     local acao = Coop.atualizar(State)
+     if acao == "game_over" then
+         if Objetos.limpar_checkpoint then Objetos.limpar_checkpoint() end
+         State.proxima_cena = State.SCREEN_GAME_OVER
+         if not Transicao.ativa then Transicao.iniciar() end
+     elseif acao == "resetar_fase" then
+         State.espera_soltar = true
+         State.proxima_cena = State.SCREEN_GAME
+         State.acao_pos_transicao = function() State.resetar_estado_fase() end
+         if not Transicao.ativa then Transicao.iniciar() end
+     end
     end
 
     if State.player then
-        Camera.update(State.player.x, State.player.y, State.player.velocidade_x, Mapa)
+        local lista = State.players or { State.player }
+        local ref = lista[1]
+        for _, p in ipairs(lista) do
+            if not p.morto and not p.coop_esperando then ref = p; break end
+        end
+        Camera.update(ref.x, ref.y, ref.velocidade_x, Mapa)
     end
 
     if Palette then
@@ -155,15 +206,17 @@ function update(frame)
         Mapa.draw_objetos(draw_x, draw_y)
         Objetos.draw(cam_arredondada_x, cam_arredondada_y)
         -- 2. Sonic
-        if State.player and not State.player.invisivel_visual then
-            Player.draw(State.player, cam_arredondada_x, cam_arredondada_y)
-            local oxi = State.oxigenio
-            if oxi and oxi.na_agua and oxi.tempo_restante <= 5 * 60 then
-                local segs = math.ceil(oxi.tempo_restante / 60)
-                local segs_str = tostring(segs)
-                local texto_x = math.floor(State.player.x - cam_arredondada_x) - 8
-                local texto_y = math.floor(State.player.y - cam_arredondada_y) - 30
-                UI.desenhar_texto_ui(segs_str, texto_x, texto_y, 16)
+        for _, p in ipairs(State.players or { State.player }) do
+            if not p.invisivel_visual then
+                Player.draw(p, cam_arredondada_x, cam_arredondada_y)
+                local oxi = p.oxigenio
+                if oxi and oxi.na_agua and oxi.tempo_restante <= 5 * 60
+                   and not p.morto and not p.coop_esperando then
+                    local segs_str = tostring(math.ceil(oxi.tempo_restante / 60))
+                    local tx = math.floor(p.x - cam_arredondada_x) - 8
+                    local ty = math.floor(p.y - cam_arredondada_y) - 30
+                    UI.desenhar_texto_ui(segs_str, tx, ty, 16)
+                end
             end
         end
 

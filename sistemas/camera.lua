@@ -89,6 +89,16 @@ function Camera.update(player_x, player_y, player_vx, mapa)
         return
     end
 
+    -- COOP: o alvo passa a ser o centro dos vivos. Com vx=0 nao ha
+    -- look-ahead, e a dead zone existente da o follow suave de grupo.
+    local Coop = require("sistemas.coop")
+    if Coop.ativo then
+        local cx, cy = Coop.centro_vivos()
+        if cx then
+            player_x, player_y, player_vx = cx, cy - 16, 0
+        end
+    end
+
     local centro_x = Camera.x + Camera.largura_tela / 2
     local look = 0
     if player_vx > 2 then look = LOOK_AHEAD

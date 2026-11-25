@@ -6,6 +6,11 @@ local Camera    = require("sistemas.camera")
 local State     = require("state")
 
 local GRAVIDADE_PROJETIL = 0.10
+-- Orbo: detectar o Sonic pelas costas, mas 2s mais lento que de frente.
+local ORBO_ATRASO_TRAS = 120
+local ORBO_ALCANCE_H = 160   -- alcance horizontal (antes era raio 96 euclidiano)
+local ORBO_TOL_ACIMA = 8     -- acima disso NÃO detecta
+local ORBO_ALCANCE_V = 48    -- quanto abaixo do Orbo ainda detecta
 
 local CONFIG = {
     ["motobug"] = { sprite_anda = "motobug_anda", velocidade = 1.0, largura = 15, altura = 15, padrao = "anda_chao", alcance = 48 },
@@ -101,10 +106,28 @@ local function atualizar_orbo(inimigo, player)
 
     if not inimigo.atirando and not inimigo.esperando and inimigo.orbes_restantes > 0 then
         inimigo.orbita_angulo = inimigo.orbita_angulo + cfg.velocidade_orbita
-        local mesma_altura = math.abs(inimigo.y - (player.y + 16)) < 24
-        if dist < cfg.raio_deteccao and mesmo_lado and mesma_altura then
-            inimigo.atirando = true; inimigo.timer_tiro = 0; inimigo.timer_queda_orbe = 0
-            inimigo.orbita_angulo = -math.pi / 2
+        -- Horizontal puro (não encurta com a altura) e só do nível do
+        -- Orbo para BAIXO: quem está acima não é detectado.
+        local dy_rel = (player.y + 16) - inimigo.y
+        local na_faixa = dy_rel >= -ORBO_TOL_ACIMA and dy_rel <= ORBO_ALCANCE_V
+        if math.abs(dx) < ORBO_ALCANCE_H and na_faixa then
+            if mesmo_lado then
+                inimigo.timer_tras = 0
+                inimigo.atirando = true; inimigo.timer_tiro = 0; inimigo.timer_queda_orbe = 0
+                inimigo.orbita_angulo = -math.pi / 2
+            else
+                -- Pelas costas: detecta igual, mas com atraso de 2s
+                -- antes de virar e começar a lançar.
+                inimigo.timer_tras = (inimigo.timer_tras or 0) + 1
+                if inimigo.timer_tras >= ORBO_ATRASO_TRAS then
+                    inimigo.direcao = (dx >= 0) and 1 or -1
+                    inimigo.timer_tras = 0
+                    inimigo.atirando = true; inimigo.timer_tiro = 0; inimigo.timer_queda_orbe = 0
+                    inimigo.orbita_angulo = -math.pi / 2
+                end
+            end
+        else
+            inimigo.timer_tras = 0
         end
     end
 
@@ -131,6 +154,28 @@ local function atualizar_orbo(inimigo, player)
                 inimigo.atirando = false; inimigo.esperando = true; inimigo.timer_tiro = 0
             end
         end
+    end
+
+        -- Posições dos orbes: calculadas UMA vez por frame e compartilhadas
+        -- entre o draw e a colisão. Antes só o draw sabia onde eles estavam,
+        -- por isso encostar neles não feria.
+        local pos = inimigo.orbes_pos
+        if not pos then pos = {}; inimigo.orbes_pos = pos end
+        local qtd = inimigo.orbes_restantes or 0
+        local raio = cfg.raio_orbita
+        local tq = cfg.tempo_queda or 10
+        for i = 1, qtd do
+            local ang = inimigo.orbita_angulo + ((i - 1) * math.pi / 2)
+            local oy = inimigo.y + math.sin(ang) * raio
+            if inimigo.atirando and i == 1 then
+                oy = oy + (raio * 2) * (inimigo.timer_queda_orbe / tq)
+            end
+            local e = pos[i]
+            if not e then e = {}; pos[i] = e end
+            e.x = inimigo.x + math.cos(ang) * raio
+            e.y = oy
+        end
+        for i = #pos, qtd + 1, -1 do pos[i] = nil
     end
 end
 
@@ -676,6 +721,21 @@ function Inimigos.update(player)
         end
     end
 
+        -- Orbes em órbita do Orbo ferem ao toque. O corpo do Orbo já foi
+    -- testado acima; aqui são os 4 orbes ao redor dele.
+    for _, inimigo in ipairs(Inimigos.lista) do
+        if inimigo.vivo and inimigo.tipo == "orbo" and inimigo.orbes_pos then
+            local px0, py0, px1, py1 = PlayerSys.get_hitbox(player)
+            for _, o in ipairs(inimigo.orbes_pos) do
+                if px0 < o.x + 4 and px1 > o.x - 4
+                and py0 < o.y + 4 and py1 > o.y - 4 then
+                    PlayerSys.aplicar_dano(player)
+                    if player.morto or player.em_dano then return end
+                end
+            end
+        end
+    end
+
     -- Segmentos: só física
     for i = #Inimigos.segmentos, 1, -1 do
         local s = Inimigos.segmentos[i]
@@ -931,23 +991,15 @@ function Inimigos.draw(cam_x, cam_y)
                 end
             end
 
-            if inimigo.tipo == "orbo" and inimigo.orbes_restantes and inimigo.orbes_restantes > 0 then
-                local qtd = inimigo.orbes_restantes
-                local tempo_queda = inimigo.cfg.tempo_queda or 10
-                local raio = inimigo.cfg.raio_orbita
-                for i = 0, qtd - 1 do
-                    local ang = inimigo.orbita_angulo + (i * math.pi / 2)
-                    local ox = inimigo.x + math.cos(ang) * raio
-                    local oy = inimigo.y + math.sin(ang) * raio
-                    if inimigo.atirando and i == 0 then
-                        local progresso = inimigo.timer_queda_orbe / tempo_queda
-                        oy = oy + (raio * 2) * progresso
-                    end
-                    local sprite = Sprites.sprite("orbo_orbita", 1)
-                    if sprite then
+            if inimigo.tipo == "orbo" and inimigo.orbes_pos then
+                local sprite = Sprites.sprite("orbo_orbita", 1)
+                if sprite then
+                    local hw = (sprite.width or 8) / 2
+                    local hh = (sprite.height or 8) / 2
+                    for _, o in ipairs(inimigo.orbes_pos) do
                         ui.spr(sprite,
-                            math.floor(ox - cam_x - (sprite.width or 8) / 2),
-                            math.floor(oy - cam_y - (sprite.height or 8) / 2),
+                            math.floor(o.x - cam_x - hw),
+                            math.floor(o.y - cam_y - hh),
                             false, false)
                     end
                 end

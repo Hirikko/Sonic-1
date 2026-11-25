@@ -17,11 +17,11 @@ local ANIMACOES = {
         ar               = { pasta = "ar",              frames = 1,  cadencia = 1,  loop = false,   frame_fixo = 1 },
         vira_rapido      = { pasta = "vira_rapido",     frames = 1,  cadencia = 1,  loop = false,   frame_fixo = 1 },
         escudo_ativado   = { pasta = "escudo_ativado",  frames = 10, cadencia = 1,  loop = false },
-        aneis            = { pasta = "aneis",           frames = 6,  cadencia = 1,  loop = false },
+        aneis            = { pasta = "objetos/aneis",   frames = 6,  cadencia = 1,  loop = false },
 
         -- Título
         titulo = { pasta = "titulo", frames = 2, cadencia = 20, loop = true },
-        titulo_botao = { pasta = "titulo/botao", frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
+        titulo_botao = { pasta = "titulo/botao/iniciar", frames = 1, cadencia = 1, loop = false, frame_fixo = 1 },
 
         -- Inimigos
         motobug_anda   = { pasta = "inimigos/motobug",            frames = 2, cadencia = 8,  loop = true },
@@ -116,20 +116,25 @@ local function resolver_frame_robusto(raiz, pasta, frame)
 
     return nil
 end
-
--- Wrapper para Sonic (caminho "sonic/<pasta>")
-local SONIC_ESTADOS = {
+-- Estados de animacao do PERSONAGEM: resolvidos em herois/<heroi>/<pasta>.
+-- escudo_ativado ficou FORA porque se divide: f1..f8 compartilhado em
+-- objetos/, f9+ (aura) por heroi.
+local HEROI_ESTADOS = {
     parado=true, esperar=true, andar=true, correr=true, rodar=true, pular=true,
     pula_mola=true, olha_cima=true, olha_baixo=true, dano=true, morre=true,
-    afogado=true, ar=true, vira_rapido=true, escudo_ativado=true,
+    afogado=true, ar=true, vira_rapido=true,
 }
 
-local cache_sprites = {} -- Cache para não montar strings toda hora
+-- Cache por heroi: o mesmo estado/frame resolve em arquivos diferentes.
+local cache_sprites = {}
 
-function SpritesAnim.sprite(estado, frame)
-    -- Se já está no cache, retorna na hora
-    if cache_sprites[estado] and cache_sprites[estado][frame] then
-        return cache_sprites[estado][frame]
+function SpritesAnim.sprite(estado, frame, heroi)
+    heroi = heroi or "sonic"
+    local f = frame or 1
+
+    local cache_h = cache_sprites[heroi]
+    if cache_h and cache_h[estado] and cache_h[estado][f] then
+        return cache_h[estado][f]
     end
 
     local configuracao = ANIMACOES[estado]
@@ -137,30 +142,109 @@ function SpritesAnim.sprite(estado, frame)
     local raiz = _G.Sprites
     if type(raiz) ~= "table" then return nil, "_G.Sprites ausente ou inválido" end
 
-    local frame_nome = "f" .. tostring(frame or 1)
+    local frame_nome = "f" .. tostring(f)
     local sprite = nil
 
-    if SONIC_ESTADOS[estado] or estado == "aneis" then
-        sprite = resolver_frame_robusto(raiz, "sonic/" .. configuracao.pasta, frame_nome)
-        if not sprite and type(raiz.sonic) == "table" then
-            sprite = raiz.sonic[configuracao.pasta] and raiz.sonic[configuracao.pasta][frame_nome]
+    if HEROI_ESTADOS[estado] then
+        local base = "herois/" .. heroi .. "/" .. configuracao.pasta
+        sprite = resolver_frame_robusto(raiz, base, frame_nome)
+        -- Rede de seguranca: se o heroi tem a pasta mas falta esse frame
+        -- (ex.: amy/andar so vai ate f5), usa f1 do PROPRIO heroi em vez
+        -- de mostrar o Sonic no meio da animacao dele.
+        if not sprite and f ~= 1 then
+            sprite = resolver_frame_robusto(raiz, base, "f1")
         end
+        -- Sem a pasta nenhuma (ex.: amy nao tem dano/): cai no Sonic.
+        if not sprite and heroi ~= "sonic" then
+            sprite = resolver_frame_robusto(raiz, "herois/sonic/" .. configuracao.pasta, frame_nome)
+        end
+
+    elseif estado == "escudo_ativado" then
+        if f <= 8 then
+            sprite = resolver_frame_robusto(raiz, "objetos/escudo_ativado", frame_nome)
+        else
+            sprite = resolver_frame_robusto(raiz, "herois/" .. heroi .. "/escudo_ativado", frame_nome)
+            if not sprite and heroi ~= "sonic" then
+                sprite = resolver_frame_robusto(raiz, "herois/sonic/escudo_ativado", frame_nome)
+            end
+        end
+
     elseif estado == "titulo" then
         sprite = resolver_frame_robusto(raiz, "titulo", frame_nome)
         if not sprite and type(raiz.titulo) == "table" then
             sprite = raiz.titulo[frame_nome]
         end
+
     else
         sprite = resolver_frame_robusto(raiz, configuracao.pasta, frame_nome)
     end
 
-    -- Salva no cache para os próximos frames
     if sprite then
-        if not cache_sprites[estado] then cache_sprites[estado] = {} end
-        cache_sprites[estado][frame] = sprite
+        if not cache_h then cache_h = {}; cache_sprites[heroi] = cache_h end
+        if not cache_h[estado] then cache_h[estado] = {} end
+        cache_h[estado][f] = sprite
     end
 
     return sprite
+end
+
+-- ============================================================
+-- FRAMES POR HEROI
+-- Alguns herois tem contagem diferente do padrao do ANIMACOES
+-- (amy/andar tem 5, sonic tem 6). Sondagem automatica: conta os
+-- fN que existem na pasta do heroi. Cache por heroi+estado, roda
+-- uma vez so. Sao apenas leituras de tabela, nao carregam asset.
+-- ============================================================
+local MAX_FRAMES_PROBE = 16
+local cache_frames = {}
+
+function SpritesAnim.frames(estado, heroi)
+    heroi = heroi or "sonic"
+    local ch = cache_frames[heroi]
+    if not ch then ch = {}; cache_frames[heroi] = ch end
+    if ch[estado] then return ch[estado] end
+
+    local cfg = ANIMACOES[estado]
+    local n = (cfg and cfg.frames) or 1
+
+    if cfg and HEROI_ESTADOS[estado] then
+        local raiz = _G.Sprites
+        if type(raiz) == "table" then
+            local base = "herois/" .. heroi .. "/" .. cfg.pasta
+            local cont = 0
+            for i = 1, MAX_FRAMES_PROBE do
+                if resolver_frame_robusto(raiz, base, "f" .. i) then
+                    cont = i
+                else
+                    break
+                end
+            end
+            -- cont == 0: heroi sem a pasta. Mantem o padrao, e o
+            -- resolver de sprite cai no Sonic pelo fallback.
+            if cont > 0 then n = cont end
+        end
+    end
+
+    ch[estado] = n
+    return n
+end
+
+-- Resolver publico de caminho completo, para os modulos de UI que
+-- buscam assets fora do ANIMACOES (obj_ui, fundo, sel_heroi...).
+function SpritesAnim.asset(caminho)
+    local raiz = _G.Sprites
+    if type(raiz) ~= "table" then return nil end
+    if raiz[caminho] then return raiz[caminho] end
+    if raiz[caminho .. ".png"] then return raiz[caminho .. ".png"] end
+    local partes = {}
+    for p in caminho:gmatch("[^/]+") do partes[#partes + 1] = p end
+    local via = buscar_em_arvore(raiz, partes)
+    if via then return via end
+    if type(raiz.assets) == "table" then
+        via = buscar_em_arvore(raiz.assets, partes)
+        if via then return via end
+    end
+    return raiz["assets/" .. caminho] or raiz["assets/" .. caminho .. ".png"]
 end
 
 return SpritesAnim

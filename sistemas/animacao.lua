@@ -13,7 +13,7 @@ local function iniciar(player, estado)
     player.timer_anim = 0
 end
 
-local function atualizar_frame(player, configuracao)
+local function atualizar_frame(player, configuracao, estado)
     if configuracao.frame_fixo then
         player.frame_anim = configuracao.frame_fixo
         return
@@ -25,12 +25,14 @@ local function atualizar_frame(player, configuracao)
     player.timer_anim = 0
     player.frame_anim = player.frame_anim + 1
 
-    if player.frame_anim <= configuracao.frames then return end
+    -- total real do heroi, nao o padrao do ANIMACOES
+    local total = Sprites.frames(estado, player.heroi)
+    if player.frame_anim <= total then return end
 
     if configuracao.loop then
         player.frame_anim = 1
     else
-        player.frame_anim = configuracao.frames
+        player.frame_anim = total
     end
 end
 
@@ -75,7 +77,7 @@ end
 local function atualizar_forcada(player)
     if not player.animacao_forcada then return false end
     local configuracao = Sprites.ANIMACOES[player.animacao_forcada]
-    atualizar_frame(player, configuracao)
+    atualizar_frame(player, configuracao, player.animacao_forcada)
 
     if player.duracao_forcada then
         player.duracao_forcada = player.duracao_forcada - 1
@@ -161,7 +163,7 @@ function Animacao.atualizar(player)
 
     local configuracao = Sprites.ANIMACOES[player.sprite]
     if configuracao then
-        atualizar_frame(player, configuracao)
+        atualizar_frame(player, configuracao, player.sprite)
     end
 
     player.direcao_anterior = player.direcao
@@ -179,7 +181,7 @@ function Animacao.liberar(player)
 end
 
 function Animacao.sprite_atual(player)
-    return Sprites.sprite(player.sprite, player.frame_anim)
+    return Sprites.sprite(player.sprite, player.frame_anim, player.heroi)
 end
 
 return Animacao

@@ -66,7 +66,8 @@ function Aneis.espalhar_aneis(x, y, quantidade)
     end
 end
 
-function Aneis.update(player)
+-- GLOBAL: animacao, fisica dos espalhados e timers. UMA vez por frame.
+function Aneis.update()
     Aneis.timer = Aneis.timer + 1
     if Aneis.timer >= TEMPO_ANIMACAO then
         Aneis.timer = 0
@@ -74,20 +75,9 @@ function Aneis.update(player)
         if Aneis.frame > 6 then Aneis.frame = 1 end
     end
 
-    local px = player.x
-    local py = player.y + 16
-
     for _, anel in ipairs(Aneis.lista) do
-        if anel.coletado then
-            if anel.timer_coleta > 0 then anel.timer_coleta = anel.timer_coleta - 1 end
-        else
-            local dx = px - anel.x
-            local dy = py - anel.y
-            if (dx * dx + dy * dy) < (RAIO_COLETA * RAIO_COLETA) then
-                anel.coletado = true
-                anel.timer_coleta = TEMPO_COLETA
-                adicionar_anel()
-            end
+        if anel.coletado and anel.timer_coleta > 0 then
+            anel.timer_coleta = anel.timer_coleta - 1
         end
     end
 
@@ -115,16 +105,37 @@ function Aneis.update(player)
             end
 
             anel.timer = anel.timer - 1
-            if anel.timer <= 0 then
-                table.remove(Aneis.espalhados, i)
-            else
-                local dx = px - anel.x
-                local dy = py - anel.y
-                if (dx * dx + dy * dy) < (RAIO_COLETA * RAIO_COLETA) then
-                    anel.coletado = true
-                    anel.timer_coleta = TEMPO_COLETA
-                    adicionar_anel()
-                end
+            if anel.timer <= 0 then table.remove(Aneis.espalhados, i) end
+        end
+    end
+end
+
+-- POR PLAYER: so a coleta. Chamar uma vez para CADA player.
+-- Os aneis e as vidas continuam no pool compartilhado (adicionar_anel).
+function Aneis.coleta(player)
+    if not player or player.morto or player.coop_esperando then return end
+    local px = player.x
+    local py = player.y + 16
+    local r2 = RAIO_COLETA * RAIO_COLETA
+
+    for _, anel in ipairs(Aneis.lista) do
+        if not anel.coletado then
+            local dx, dy = px - anel.x, py - anel.y
+            if dx * dx + dy * dy < r2 then
+                anel.coletado = true
+                anel.timer_coleta = TEMPO_COLETA
+                adicionar_anel()
+            end
+        end
+    end
+
+    for _, anel in ipairs(Aneis.espalhados) do
+        if not anel.coletado then
+            local dx, dy = px - anel.x, py - anel.y
+            if dx * dx + dy * dy < r2 then
+                anel.coletado = true
+                anel.timer_coleta = TEMPO_COLETA
+                adicionar_anel()
             end
         end
     end

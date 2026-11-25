@@ -11,6 +11,8 @@ def main():
     superficies, paredes, danos, joga, pendulos, outros, molas, aneis = [], [], [], [], [], [], [], []
     inimigos, plataformas_flutuantes, esmeraldas, areas_agua, sensores_queda, tetos = [], [], [], [], [], []
     pontos_ar = []
+    pontes, balancas_raw, pesos_raw = [], [], []
+    ponte_falsa = []
     chefe_obj = None
     cela_obj = None
     botaocela_obj = None
@@ -96,9 +98,6 @@ def main():
                     if poly:
                         xs = [obj['x'] + p['x'] + off_x for p in poly]
                         ys = [obj['y'] + p['y'] + off_y for p in poly]
-                        # bbox fica como pre-filtro; os pontos sao a forma real.
-                        # A agua da BZ1 e um poligono concavo (cachoeiras + rio)
-                        # cujo bbox cobria terra seca.
                         pts = []
                         for p in poly:
                             pts.append(round(obj['x'] + p['x'] + off_x, 2))
@@ -146,10 +145,7 @@ def main():
                                 classe_m = obj_type if obj_type.startswith('mola') else 'mola'
                                 mx, my, mw, mh = x, y, w, h
                                 rot_m = obj.get('rotation', 0) or 0
-                                # Tiled gira o retangulo em torno de (x,y), sentido horario.
-                                # Aplicado so em mola_esp para nao alterar as molas ja
-                                # funcionando de gh1/gh2/gh3.
-                                if classe_m == 'mola_esp' and abs(rot_m) > 0.01:
+                                if abs(rot_m) > 0.01:
                                     rad_m = math.radians(rot_m)
                                     cs_m, sn_m = math.cos(rad_m), math.sin(rad_m)
                                     cantos_m = []
@@ -160,10 +156,27 @@ def main():
                                     ys_m = [c[1] for c in cantos_m]
                                     mx, my = min(xs_m), min(ys_m)
                                     mw, mh = max(xs_m) - mx, max(ys_m) - my
+                                                                    # Mola vertical precisa de uma PAD horizontal.
+                                # Com o rotation do Tiled ela pode ficar com 5px
+                                # de largura, e ai o Sonic so pega se estiver
+                                # exatamente em cima — some da janela ao pular.
+                                if tipo_mola.find('cima') >= 0 or tipo_mola.find('up') >= 0:
+                                    PAD_MIN = 16.0
+                                    if mw < PAD_MIN:
+                                        cx_pad = mx + mw / 2.0
+                                        mx = cx_pad - PAD_MIN / 2.0
+                                        mw = PAD_MIN
+                                forca_v = props_m.get('forca', 0)
+                                try:
+                                    forca_v = float(forca_v)
+                                except (TypeError, ValueError):
+                                    forca_v = 0.0
+                                if forca_v == int(forca_v):
+                                    forca_v = int(forca_v)
                                 ent_m = {"tipo": tipo_mola, "classe": classe_m,
                                          "x": round(mx, 2), "y": round(my, 2),
                                          "largura": round(mw, 2), "altura": round(mh, 2),
-                                         "forca": props_m.get('forca', 0),
+                                         "forca": forca_v,
                                          "raio": 0, "eixo_x": 0, "eixo_y1": 0, "eixo_y2": 0}
                                 if tipo_mola == 'mola_espiral':
                                     raio_m = w / 2.0
@@ -172,12 +185,23 @@ def main():
                                     ent_m["eixo_y1"] = round(y + raio_m, 2)
                                     ent_m["eixo_y2"] = round(y + h - raio_m, 2)
                                 molas.append(ent_m)
-                            elif obj_type == 'flutua':
-                                plataformas_flutuantes.append({"x": round(x, 2), "y": round(y, 2), "largura": round(w, 2), "altura": round(h, 2), "x_inicial": round(x, 2), "amplitude": 64, "velocidade": 1.0, "direcao": 1})
+                            elif obj_type in ('flutua', 'voa'):
+                                props_p = {p['name']: p['value'] for p in obj.get('properties', [])}
+                                plataformas_flutuantes.append({
+                                    "x": round(x, 2), "y": round(y, 2),
+                                    "largura": round(w, 2), "altura": round(h, 2),
+                                    "x_inicial": round(x, 2), "y_inicial": round(y, 2),
+                                    "amplitude": props_p.get('amplitude', 64),
+                                    "velocidade": props_p.get('velocidade', 1.0),
+                                    "direcao": 1,
+                                    "modo": "vertical" if obj_type == 'voa' else "horizontal",
+                                })
                             elif obj_type in ('monitores', 'venceu'):
                                 outros.append({"tipo": obj_type, "nome": obj.get('name', ''), "x": round(x, 2), "y": round(y, 2), "w": round(w, 2), "h": round(h, 2), "coletado": False, "ativo": True})
                             elif obj_type == 'obj_chave':
                                 esmeraldas.append({"x": round(x + w/2, 2), "y": round(y + h/2, 2), "coletado": False})
+                            elif obj_type == 'ponte_falsa' or obj.get('name', '') == 'ponte_falsa':
+                                ponte_falsa.append({"x": round(x, 2), "y": round(y, 2), "w": round(w, 2), "h": round(h, 2)})
                         elif layer_name == 'aneis':
                             aneis.append({"x": round(x + w/2, 2), "y": round(y + h/2, 2), "coletado": False})
                     continue
@@ -209,6 +233,45 @@ def main():
                         xs = [obj['x'] + p['x'] + off_x for p in pontos]
                         ys = [obj['y'] + p['y'] + off_y for p in pontos]
                         sensores_queda.append({"x": round(min(xs), 2), "y": round(min(ys), 2), "w": round(max(xs) - min(xs), 2), "h": round(max(ys) - min(ys), 2)})
+                    elif obj.get('name') == 'piso_falso':
+                        # Uma tabua de 16px a cada 16 de COMPRIMENTO DE ARCO,
+                        # para acompanhar rampas (a ponte de x=1696 tem uma).
+                        pts_abs = [(obj['x'] + p['x'] + off_x,
+                                    obj['y'] + p['y'] + off_y) for p in pontos]
+                        PASSO_T = 16.0
+                        acum, prox = 0.0, 0.0
+                        for i in range(len(pts_abs) - 1):
+                            x1, y1 = pts_abs[i]
+                            x2, y2 = pts_abs[i + 1]
+                            seg = math.hypot(x2 - x1, y2 - y1)
+                            if seg <= 0.0001:
+                                continue
+                            while prox < acum + seg - 0.001:
+                                t = (prox - acum) / seg
+                                pontes.append({
+                                    "x": round(x1 + (x2 - x1) * t, 2),
+                                    "y": round(y1 + (y2 - y1) * t, 2),
+                                    "largura": 16, "altura": 8,
+                                })
+                                prox += PASSO_T
+                            acum += seg
+                    elif obj.get('name', '').startswith('balanco_'):
+                        xs = [obj['x'] + p['x'] + off_x for p in pontos]
+                        ys = [obj['y'] + p['y'] + off_y for p in pontos]
+                        balancas_raw.append({
+                            "grupo": obj.get('name'),
+                            "x": round(min(xs), 2), "y": round(min(ys), 2),
+                            "w": round(max(xs) - min(xs), 2),
+                            "h": round(max(ys) - min(ys), 2),
+                        })
+                    elif obj.get('name') == 'peso':
+                        xs = [obj['x'] + p['x'] + off_x for p in pontos]
+                        ys = [obj['y'] + p['y'] + off_y for p in pontos]
+                        pesos_raw.append({
+                            "x": round(min(xs), 2), "y": round(min(ys), 2),
+                            "w": round(max(xs) - min(xs), 2),
+                            "h": round(max(ys) - min(ys), 2),
+                        })
                     elif obj_type == 'pendulo':
                         if len(pontos) >= 2:
                             p1, p2 = pontos[0], pontos[1]
@@ -225,6 +288,37 @@ def main():
                         min_x, max_x = min(xs), max(xs)
                         min_y, max_y = min(ys), max(ys)
                         joga.append({"x": round(min_x - 8, 2), "y": round(min_y - 8, 2), "largura": round((max_x - min_x) + 16, 2), "altura": round((max_y - min_y) + 16, 2)})
+                    elif obj_type == 'ponte_falsa' or obj.get('name') == 'ponte_falsa':
+                        xs = [obj['x'] + p['x'] + off_x for p in pontos]
+                        ys = [obj['y'] + p['y'] + off_y for p in pontos]
+                        ponte_falsa.append({"x": round(min(xs), 2), "y": round(min(ys), 2), "w": round(max(xs) - min(xs), 2), "h": round(max(ys) - min(ys), 2)})
+
+    # Agrupa balanco_A com balanco_A (idem B) e associa o peso mais proximo.
+    balancas = []
+    if balancas_raw:
+        grupos = {}
+        for b in balancas_raw:
+            grupos.setdefault(b['grupo'], []).append(b)
+        for nome in sorted(grupos.keys()):
+            itens = sorted(grupos[nome], key=lambda b: b['x'])
+            if len(itens) < 2:
+                continue
+            e, d = itens[0], itens[-1]
+            peso, melhor = None, 1e18
+            for p in pesos_raw:
+                dist = abs(p['x'] - d['x']) + abs(p['y'] - d['y'])
+                if dist < melhor:
+                    melhor, peso = dist, p
+            balancas.append({
+                "grupo": nome,
+                "x_esq": e['x'], "y_esq": e['y'],
+                "x_dir": d['x'], "y_dir": d['y'],
+                "largura": e['w'], "altura": e['h'],
+                "peso_x": peso['x'] if peso else 0,
+                "peso_y": peso['y'] if peso else 0,
+                "peso_w": peso['w'] if peso else 16,
+                "peso_h": peso['h'] if peso else 16,
+            })
 
     linhas = []
     linhas.append("local Terreno = {")
@@ -260,9 +354,12 @@ def main():
     escrever_tabela("areas_agua", areas_agua, lambda a: "{{ x = {0}, y = {1}, w = {2}, h = {3}, pontos = {{ {4} }} }},".format(a['x'], a['y'], a['w'], a['h'], ", ".join(str(v) for v in a.get('pontos', []))))
     escrever_tabela("pontos_ar", pontos_ar, lambda p: "{{ x = {0}, y = {1} }},".format(p['x'], p['y']))
     escrever_tabela("sensores_queda", sensores_queda, lambda s: "{{ x = {0}, y = {1}, w = {2}, h = {3} }},".format(s['x'], s['y'], s['w'], s['h']))
+    escrever_tabela("ponte_falsa", ponte_falsa, lambda p: "{{ x = {0}, y = {1}, w = {2}, h = {3} }},".format(p['x'], p['y'], p['w'], p['h']))
     escrever_tabela("outros", outros, lambda o: "{{ tipo = '{0}', nome = '{1}', x = {2}, y = {3}, w = {4}, h = {5}, coletado = false, ativo = true }},".format(o['tipo'], o['nome'], o['x'], o['y'], o['w'], o['h']))
     escrever_tabela("inimigos", inimigos, lambda i: "{{ tipo = '{0}', x = {1}, y = {2}, w = {3}, h = {4}, direcao = '{5}' }},".format(i['tipo'], i['x'], i['y'], i['w'], i['h'], i.get('direcao', '')))
-    escrever_tabela("plataformas_flutuantes", plataformas_flutuantes, lambda p: "{{ x = {0}, y = {1}, largura = {2}, altura = {3}, x_inicial = {4}, amplitude = {5}, velocidade = {6}, direcao = {7} }},".format(p['x'], p['y'], p['largura'], p['altura'], p['x_inicial'], p['amplitude'], p['velocidade'], p['direcao']))
+    escrever_tabela("plataformas_flutuantes", plataformas_flutuantes, lambda p: "{{ x = {0}, y = {1}, largura = {2}, altura = {3}, x_inicial = {4}, y_inicial = {5}, amplitude = {6}, velocidade = {7}, direcao = {8}, modo = '{9}' }},".format(p['x'], p['y'], p['largura'], p['altura'], p['x_inicial'], p.get('y_inicial', p['y']), p['amplitude'], p['velocidade'], p['direcao'], p.get('modo', 'horizontal')))
+    escrever_tabela("pontes", pontes, lambda t: "{{ x = {0}, y = {1}, largura = {2}, altura = {3} }},".format(t['x'], t['y'], t['largura'], t['altura']))
+    escrever_tabela("balancas", balancas, lambda b: "{{ grupo = '{0}', x_esq = {1}, y_esq = {2}, x_dir = {3}, y_dir = {4}, largura = {5}, altura = {6}, peso_x = {7}, peso_y = {8}, peso_w = {9}, peso_h = {10} }},".format(b['grupo'], b['x_esq'], b['y_esq'], b['x_dir'], b['y_dir'], b['largura'], b['altura'], b['peso_x'], b['peso_y'], b['peso_w'], b['peso_h']))
     escrever_tabela("plataformas_chefe", plataformas_chefe, lambda p: "{{ x = {0}, y = {1}, w = {2}, h = {3} }},".format(p['x'], p['y'], p['w'], p['h']))
 
     linhas.append("}")
@@ -282,7 +379,12 @@ def main():
     print(f"Esmeraldas: {len(esmeraldas)}")
     print(f"Inimigos: {len(inimigos)}")
     print(f"Molas: {len(molas)}")
+    for m in molas:
+        print(f"   {m['tipo']} @ ({m['x']},{m['y']}) forca={m['forca']}")
+    print(f"Pontes falsas: {len(ponte_falsa)}")
     print(f"Plataformas Flutuantes: {len(plataformas_flutuantes)}")
+    print(f"Tabuas de Ponte: {len(pontes)}")
+    print(f"Balancas (grupos): {len(balancas)}")
     print(f"Outros Objetos (Monitores/Placa): {len(outros)}")
     print(f"Áreas de Água: {len(areas_agua)}")
     print(f"Pontos de Ar: {len(pontos_ar)}")
